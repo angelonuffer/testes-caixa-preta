@@ -1,0 +1,2 @@
+- comando: echo 123
+  saída_esperada: 123
