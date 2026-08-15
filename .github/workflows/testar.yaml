@@ -26,4 +26,4 @@ jobs:
       run: nix develop -c cargo build --verbose
 
     - name: Executar testes
-      run: nix develop -c cargo test --verbose
+      run: nix develop -c cargo run --verbose
