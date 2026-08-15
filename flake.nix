@@ -25,6 +25,10 @@
 
           # Environment variables
           RUST_BACKTRACE = 1;
+
+          shellHook = ''
+            export PS1="\n\[\033[1;32m\][nix-shell:\w]\$\[\033[0m\] "
+          '';
         };
       }
     );
