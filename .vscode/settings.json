@@ -1,0 +1,9 @@
+{
+    "terminal.integrated.profiles.linux": {
+        "nix-develop": {
+            "path": "host-spawn",
+            "args": ["toolbox", "run", "-c", "ubuntu-toolbox-26.04", "nix", "develop"]
+        }
+    },
+    "terminal.integrated.defaultProfile.linux": "nix-develop"
+}
