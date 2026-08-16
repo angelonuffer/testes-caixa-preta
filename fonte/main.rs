@@ -1,11 +1,13 @@
 use serde::Deserialize;
 use std::fs;
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, Stdio};
+use std::io::Write;
 
 #[derive(Deserialize, Debug)]
 struct CasoDeTeste {
     comando: String,
+    entrada: Option<String>,
     #[serde(rename = "saída_esperada")]
     saida_esperada: serde_yaml::Value,
 }
@@ -69,7 +71,29 @@ fn main() {
             total += 1;
             print!("Testando comando: `{}` ... ", caso.comando);
 
-            let output = match Command::new("sh").arg("-c").arg(&caso.comando).output() {
+            let mut cmd = Command::new("sh");
+            cmd.arg("-c").arg(&caso.comando);
+
+            if caso.entrada.is_some() {
+                cmd.stdin(Stdio::piped());
+            }
+            cmd.stdout(Stdio::piped());
+
+            let mut child = match cmd.spawn() {
+                Ok(c) => c,
+                Err(err) => {
+                    println!("FALHOU (erro de execução: {})", err);
+                    continue;
+                }
+            };
+
+            if let Some(ref entrada_str) = caso.entrada {
+                if let Some(mut stdin) = child.stdin.take() {
+                    let _ = stdin.write_all(entrada_str.as_bytes());
+                }
+            }
+
+            let output = match child.wait_with_output() {
                 Ok(o) => o,
                 Err(err) => {
                     println!("FALHOU (erro de execução: {})", err);
