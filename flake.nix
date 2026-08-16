@@ -12,8 +12,24 @@
         pkgs = import nixpkgs {
           inherit system;
         };
+
+        testeCaixaPretaPkg = pkgs.rustPlatform.buildRustPackage {
+          pname = "testes-caixa-preta";
+          version = "0.1.0";
+          src = ./.;
+          cargoLock = {
+            lockFile = ./Cargo.lock;
+          };
+          CARGO_BUILD_TARGET_DIR = "target";
+        };
       in
       {
+        packages.default = testeCaixaPretaPkg;
+
+        apps.default = flake-utils.lib.mkApp {
+          drv = testeCaixaPretaPkg;
+        };
+
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             cargo
