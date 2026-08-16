@@ -5,11 +5,31 @@ use std::process::{Command, Stdio};
 use std::io::Write;
 
 #[derive(Deserialize, Debug)]
+#[serde(untagged)]
+enum Teste {
+    Simples(CasoDeTeste),
+    Tubo { tubo: Vec<PassoTubo> },
+}
+
+#[derive(Deserialize, Debug)]
 struct CasoDeTeste {
     comando: String,
     entrada: Option<String>,
     #[serde(rename = "saída_esperada")]
     saida_esperada: serde_yaml::Value,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+enum PassoTubo {
+    Entrada {
+        entrada: String,
+    },
+    Comando {
+        comando: String,
+        #[serde(rename = "saída_esperada")]
+        saida_esperada: Option<serde_yaml::Value>,
+    },
 }
 
 fn value_to_string(v: &serde_yaml::Value) -> String {
@@ -57,7 +77,7 @@ fn main() {
             }
         };
 
-        let casos: Vec<CasoDeTeste> = match serde_yaml::from_str(&content) {
+        let casos: Vec<Teste> = match serde_yaml::from_str(&content) {
             Ok(c) => c,
             Err(err) => {
                 eprintln!("Erro ao fazer parse do arquivo {}: {}", path.display(), err);
@@ -68,49 +88,119 @@ fn main() {
         println!("Executando testes do arquivo: {}", path.display());
 
         for caso in casos {
-            total += 1;
-            print!("Testando comando: `{}` ... ", caso.comando);
+            match caso {
+                Teste::Simples(caso) => {
+                    total += 1;
+                    print!("Testando comando: `{}` ... ", caso.comando);
 
-            let mut cmd = Command::new("sh");
-            cmd.arg("-c").arg(&caso.comando);
+                    let mut cmd = Command::new("sh");
+                    cmd.arg("-c").arg(&caso.comando);
 
-            if caso.entrada.is_some() {
-                cmd.stdin(Stdio::piped());
-            }
-            cmd.stdout(Stdio::piped());
+                    if caso.entrada.is_some() {
+                        cmd.stdin(Stdio::piped());
+                    }
+                    cmd.stdout(Stdio::piped());
 
-            let mut child = match cmd.spawn() {
-                Ok(c) => c,
-                Err(err) => {
-                    println!("FALHOU (erro de execução: {})", err);
-                    continue;
+                    let mut child = match cmd.spawn() {
+                        Ok(c) => c,
+                        Err(err) => {
+                            println!("FALHOU (erro de execução: {})", err);
+                            continue;
+                        }
+                    };
+
+                    if let Some(ref entrada_str) = caso.entrada {
+                        if let Some(mut stdin) = child.stdin.take() {
+                            let _ = stdin.write_all(entrada_str.as_bytes());
+                        }
+                    }
+
+                    let output = match child.wait_with_output() {
+                        Ok(o) => o,
+                        Err(err) => {
+                            println!("FALHOU (erro de execução: {})", err);
+                            continue;
+                        }
+                    };
+
+                    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                    let expected = value_to_string(&caso.saida_esperada).trim().to_string();
+
+                    if stdout == expected {
+                        println!("PASSOU");
+                        passed += 1;
+                    } else {
+                        println!("FALHOU");
+                        println!("  Esperado: {}", expected);
+                        println!("  Obtido:   {}", stdout);
+                    }
                 }
-            };
+                Teste::Tubo { tubo } => {
+                    total += 1;
+                    print!("Testando tubo ... ");
 
-            if let Some(ref entrada_str) = caso.entrada {
-                if let Some(mut stdin) = child.stdin.take() {
-                    let _ = stdin.write_all(entrada_str.as_bytes());
+                    let mut current_input = String::new();
+                    let mut tubo_falhou = false;
+
+                    for (i, passo) in tubo.iter().enumerate() {
+                        match passo {
+                            PassoTubo::Entrada { entrada } => {
+                                current_input = entrada.clone();
+                            }
+                            PassoTubo::Comando { comando, saida_esperada } => {
+                                let mut cmd = Command::new("sh");
+                                cmd.arg("-c").arg(comando);
+
+                                cmd.stdin(Stdio::piped());
+                                cmd.stdout(Stdio::piped());
+
+                                let mut child = match cmd.spawn() {
+                                    Ok(c) => c,
+                                    Err(err) => {
+                                        println!("FALHOU (passo {} erro de execução: {})", i + 1, err);
+                                        tubo_falhou = true;
+                                        break;
+                                    }
+                                };
+
+                                if let Some(mut stdin) = child.stdin.take() {
+                                    let _ = stdin.write_all(current_input.as_bytes());
+                                }
+
+                                let output = match child.wait_with_output() {
+                                    Ok(o) => o,
+                                    Err(err) => {
+                                        println!("FALHOU (passo {} erro de execução: {})", i + 1, err);
+                                        tubo_falhou = true;
+                                        break;
+                                    }
+                                };
+
+                                let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+
+                                if let Some(expected_val) = saida_esperada {
+                                    let expected = value_to_string(expected_val).trim().to_string();
+                                    if stdout != expected {
+                                        println!("FALHOU");
+                                        println!("  Passo:    {}", i + 1);
+                                        println!("  Comando:  {}", comando);
+                                        println!("  Esperado: {}", expected);
+                                        println!("  Obtido:   {}", stdout);
+                                        tubo_falhou = true;
+                                        break;
+                                    }
+                                }
+
+                                current_input = stdout;
+                            }
+                        }
+                    }
+
+                    if !tubo_falhou {
+                        println!("PASSOU");
+                        passed += 1;
+                    }
                 }
-            }
-
-            let output = match child.wait_with_output() {
-                Ok(o) => o,
-                Err(err) => {
-                    println!("FALHOU (erro de execução: {})", err);
-                    continue;
-                }
-            };
-
-            let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
-            let expected = value_to_string(&caso.saida_esperada).trim().to_string();
-
-            if stdout == expected {
-                println!("PASSOU");
-                passed += 1;
-            } else {
-                println!("FALHOU");
-                println!("  Esperado: {}", expected);
-                println!("  Obtido:   {}", stdout);
             }
         }
     }
