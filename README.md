@@ -10,7 +10,7 @@ Na primeira execução, o programa cria automaticamente um arquivo de snapshot (
 
 ## Estrutura de Testes
 
-Os testes devem ser criados em arquivos `.yaml` dentro do diretório `./testes/`. O formato segue uma lista de **cenários**, onde você pode especificar um comando único ou múltiplos comandos encadeados, e opcionalmente uma entrada:
+Os testes devem ser criados em arquivos `.yaml` dentro do diretório `./testes/`. O formato segue uma lista de **cenários**, onde você pode especificar um comando único, múltiplos comandos encadeados (opcionalmente com uma entrada), ou um teste de navegador:
 
 ```yaml
 - comando: echo "Olá, Mundo!"
@@ -21,11 +21,14 @@ Os testes devem ser criados em arquivos `.yaml` dentro do diretório `./testes/`
   comandos:
     - grep b
     - sort
+
+- endereço: https://example.com
 ```
 
 - `comando`: O comando a ser rodado no shell (para cenários de um único passo).
 - `comandos`: Lista de comandos a serem rodados no shell (para cenários de múltiplos passos onde a saída de um é a entrada do próximo).
 - `entrada` (opcional): O conteúdo a ser enviado para a entrada padrão (stdin) do cenário.
+- `endereço`: A URL de uma página para gerar uma captura de tela (headless screenshot) no diretório `testes/telas/`.
 
 ## Execução Externa
 

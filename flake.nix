@@ -37,6 +37,10 @@
             rustfmt
             clippy
             rust-analyzer
+            chromium
+            (writeShellScriptBin "chromium-browser" ''
+              exec chromium "$@"
+            '')
           ];
 
           # Environment variables
