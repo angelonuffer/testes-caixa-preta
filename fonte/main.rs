@@ -13,29 +13,28 @@ struct ResultadoComando {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[serde(untagged)]
-enum ResultadoTeste {
-    Simples(ResultadoComando),
-    Tubo(Vec<ResultadoComando>),
+enum ResultadoCenario {
+    Comando(ResultadoComando),
+    Comandos(Vec<ResultadoComando>),
 }
 
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
-enum Teste {
-    Simples(CasoDeTeste),
-    Tubo { tubo: Vec<PassoTubo> },
+enum Cenario {
+    Comando(CenarioComando),
+    Comandos(CenarioComandos),
 }
 
 #[derive(Deserialize, Debug)]
-struct CasoDeTeste {
+struct CenarioComando {
     comando: String,
     entrada: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(untagged)]
-enum PassoTubo {
-    Entrada { entrada: String },
-    Comando { comando: String },
+struct CenarioComandos {
+    comandos: Vec<String>,
+    entrada: Option<String>,
 }
 
 fn main() {
@@ -81,7 +80,7 @@ fn main() {
             }
         };
 
-        let casos: Vec<Teste> = match serde_yaml::from_str(&content) {
+        let casos: Vec<Cenario> = match serde_yaml::from_str(&content) {
             Ok(c) => c,
             Err(err) => {
                 eprintln!("Erro ao fazer parse do arquivo {}: {}", path.display(), err);
@@ -98,7 +97,7 @@ fn main() {
         saidas_arquivo.set_file_name(format!("{}-saídas.yaml", stem));
 
         let has_saidas = saidas_arquivo.exists();
-        let mut expected_results: Option<Vec<ResultadoTeste>> = None;
+        let mut expected_results: Option<Vec<ResultadoCenario>> = None;
 
         if has_saidas {
             let saidas_content = match fs::read_to_string(&saidas_arquivo) {
@@ -125,20 +124,20 @@ fn main() {
             };
         }
 
-        let mut actual_results: Vec<ResultadoTeste> = Vec::new();
+        let mut actual_results: Vec<ResultadoCenario> = Vec::new();
 
         println!("Executando testes do arquivo: {}", path.display());
 
         for (idx, caso) in casos.iter().enumerate() {
             match caso {
-                Teste::Simples(caso_simples) => {
+                Cenario::Comando(caso_comando) => {
                     total += 1;
-                    print!("Testando comando: `{}` ... ", caso_simples.comando);
+                    print!("Testando cenário: `{}` ... ", caso_comando.comando);
 
                     let mut cmd = Command::new("sh");
-                    cmd.arg("-c").arg(&caso_simples.comando);
+                    cmd.arg("-c").arg(&caso_comando.comando);
 
-                    if caso_simples.entrada.is_some() {
+                    if caso_comando.entrada.is_some() {
                         cmd.stdin(Stdio::piped());
                     }
                     cmd.stdout(Stdio::piped());
@@ -152,7 +151,7 @@ fn main() {
                         }
                     };
 
-                    if let Some(ref entrada_str) = caso_simples.entrada
+                    if let Some(ref entrada_str) = caso_comando.entrada
                         && let Some(mut stdin) = child.stdin.take()
                     {
                         let _ = stdin.write_all(entrada_str.as_bytes());
@@ -176,11 +175,11 @@ fn main() {
                         codigo_saida: code,
                     };
 
-                    actual_results.push(ResultadoTeste::Simples(res));
+                    actual_results.push(ResultadoCenario::Comando(res));
 
                     if let Some(ref esperados) = expected_results {
                         if idx < esperados.len() {
-                            if let ResultadoTeste::Simples(ref esperado) = esperados[idx] {
+                            if let ResultadoCenario::Comando(ref esperado) = esperados[idx] {
                                 let mut fail = false;
                                 if esperado.saida_padrao != stdout {
                                     if !fail {
@@ -212,7 +211,7 @@ fn main() {
                                 }
                             } else {
                                 println!(
-                                    "FALHOU (tipo incompatível no snapshot, esperado Simples)"
+                                    "FALHOU (tipo incompatível no snapshot, esperado Comando)"
                                 );
                             }
                         } else {
@@ -223,102 +222,93 @@ fn main() {
                         passed += 1;
                     }
                 }
-                Teste::Tubo { tubo } => {
+                Cenario::Comandos(cenario_comandos) => {
                     total += 1;
-                    print!("Testando tubo ... ");
+                    print!("Testando cenário ... ");
 
-                    let mut current_input = String::new();
-                    let mut tubo_falhou = false;
-                    let mut tubo_results = Vec::new();
+                    let mut current_input = cenario_comandos.entrada.clone().unwrap_or_default();
+                    let mut cenario_falhou = false;
+                    let mut cenario_results = Vec::new();
 
-                    for (i, passo) in tubo.iter().enumerate() {
-                        match passo {
-                            PassoTubo::Entrada { entrada } => {
-                                current_input = entrada.clone();
+                    for (i, comando) in cenario_comandos.comandos.iter().enumerate() {
+                        let mut cmd = Command::new("sh");
+                        cmd.arg("-c").arg(comando);
+
+                        cmd.stdin(Stdio::piped());
+                        cmd.stdout(Stdio::piped());
+                        cmd.stderr(Stdio::piped());
+
+                        let mut child = match cmd.spawn() {
+                            Ok(c) => c,
+                            Err(err) => {
+                                println!(
+                                    "FALHOU (passo {} erro ao iniciar processo: {})",
+                                    i + 1,
+                                    err
+                                );
+                                cenario_falhou = true;
+                                break;
                             }
-                            PassoTubo::Comando { comando } => {
-                                let mut cmd = Command::new("sh");
-                                cmd.arg("-c").arg(comando);
+                        };
 
-                                cmd.stdin(Stdio::piped());
-                                cmd.stdout(Stdio::piped());
-                                cmd.stderr(Stdio::piped());
-
-                                let mut child = match cmd.spawn() {
-                                    Ok(c) => c,
-                                    Err(err) => {
-                                        println!(
-                                            "FALHOU (passo {} erro ao iniciar processo: {})",
-                                            i + 1,
-                                            err
-                                        );
-                                        tubo_falhou = true;
-                                        break;
-                                    }
-                                };
-
-                                if let Some(mut stdin) = child.stdin.take() {
-                                    let _ = stdin.write_all(current_input.as_bytes());
-                                }
-
-                                let output = match child.wait_with_output() {
-                                    Ok(o) => o,
-                                    Err(err) => {
-                                        println!(
-                                            "FALHOU (passo {} erro ao aguardar processo: {})",
-                                            i + 1,
-                                            err
-                                        );
-                                        tubo_falhou = true;
-                                        break;
-                                    }
-                                };
-
-                                let stdout =
-                                    String::from_utf8_lossy(&output.stdout).trim().to_string();
-                                let stderr =
-                                    String::from_utf8_lossy(&output.stderr).trim().to_string();
-                                let code = output.status.code().unwrap_or(-1);
-
-                                current_input = stdout.clone();
-
-                                tubo_results.push(ResultadoComando {
-                                    saida_padrao: stdout,
-                                    erro_padrao: stderr,
-                                    codigo_saida: code,
-                                });
-                            }
+                        if let Some(mut stdin) = child.stdin.take() {
+                            let _ = stdin.write_all(current_input.as_bytes());
                         }
+
+                        let output = match child.wait_with_output() {
+                            Ok(o) => o,
+                            Err(err) => {
+                                println!(
+                                    "FALHOU (passo {} erro ao aguardar processo: {})",
+                                    i + 1,
+                                    err
+                                );
+                                cenario_falhou = true;
+                                break;
+                            }
+                        };
+
+                        let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+                        let code = output.status.code().unwrap_or(-1);
+
+                        current_input = stdout.clone();
+
+                        cenario_results.push(ResultadoComando {
+                            saida_padrao: stdout,
+                            erro_padrao: stderr,
+                            codigo_saida: code,
+                        });
                     }
 
-                    if !tubo_falhou {
-                        actual_results.push(ResultadoTeste::Tubo(tubo_results.clone()));
+                    if !cenario_falhou {
+                        actual_results.push(ResultadoCenario::Comandos(cenario_results.clone()));
 
                         if let Some(ref esperados) = expected_results {
                             if idx < esperados.len() {
-                                if let ResultadoTeste::Tubo(ref esperado) = esperados[idx] {
+                                if let ResultadoCenario::Comandos(ref esperado) = esperados[idx] {
                                     let mut fail = false;
-                                    if esperado.len() != tubo_results.len() {
+                                    if esperado.len() != cenario_results.len() {
                                         println!(
-                                            "FALHOU (quantidade de comandos no tubo não corresponde ao snapshot)"
+                                            "FALHOU (quantidade de comandos no cenário não corresponde ao snapshot)"
                                         );
                                         fail = true;
                                     } else {
                                         for k in 0..esperado.len() {
                                             if esperado[k].saida_padrao
-                                                != tubo_results[k].saida_padrao
+                                                != cenario_results[k].saida_padrao
                                                 || esperado[k].erro_padrao
-                                                    != tubo_results[k].erro_padrao
+                                                    != cenario_results[k].erro_padrao
                                                 || esperado[k].codigo_saida
-                                                    != tubo_results[k].codigo_saida
+                                                    != cenario_results[k].codigo_saida
                                             {
                                                 if !fail {
                                                     println!("FALHOU");
                                                     fail = true;
                                                 }
-                                                println!("  Passo do tubo: {}", k + 1);
+                                                println!("  Passo do cenário: {}", k + 1);
                                                 if esperado[k].saida_padrao
-                                                    != tubo_results[k].saida_padrao
+                                                    != cenario_results[k].saida_padrao
                                                 {
                                                     println!(
                                                         "    saida_padrao esperada: {}",
@@ -326,11 +316,11 @@ fn main() {
                                                     );
                                                     println!(
                                                         "    saida_padrao obtida:   {}",
-                                                        tubo_results[k].saida_padrao
+                                                        cenario_results[k].saida_padrao
                                                     );
                                                 }
                                                 if esperado[k].erro_padrao
-                                                    != tubo_results[k].erro_padrao
+                                                    != cenario_results[k].erro_padrao
                                                 {
                                                     println!(
                                                         "    erro_padrao esperado: {}",
@@ -338,11 +328,11 @@ fn main() {
                                                     );
                                                     println!(
                                                         "    erro_padrao obtido:   {}",
-                                                        tubo_results[k].erro_padrao
+                                                        cenario_results[k].erro_padrao
                                                     );
                                                 }
                                                 if esperado[k].codigo_saida
-                                                    != tubo_results[k].codigo_saida
+                                                    != cenario_results[k].codigo_saida
                                                 {
                                                     println!(
                                                         "    codigo_saida esperado: {}",
@@ -350,7 +340,7 @@ fn main() {
                                                     );
                                                     println!(
                                                         "    codigo_saida obtido:   {}",
-                                                        tubo_results[k].codigo_saida
+                                                        cenario_results[k].codigo_saida
                                                     );
                                                 }
                                             }
@@ -362,12 +352,12 @@ fn main() {
                                     }
                                 } else {
                                     println!(
-                                        "FALHOU (tipo incompatível no snapshot, esperado Tubo)"
+                                        "FALHOU (tipo incompatível no snapshot, esperado Comandos)"
                                     );
                                 }
                             } else {
                                 println!(
-                                    "FALHOU (não há saída correspondente no arquivo de snapshot para o tubo)"
+                                    "FALHOU (não há saída correspondente no arquivo de snapshot para o cenário)"
                                 );
                             }
                         } else {

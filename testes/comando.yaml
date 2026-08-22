@@ -3,10 +3,10 @@
 - comando: cat
   entrada: "teste com entrada"
 
-- tubo:
-  - entrada: |
-      banana
-      abacate
-      cenoura
-  - comando: grep b
-  - comando: sort
+- entrada: |
+    banana
+    abacate
+    cenoura
+  comandos:
+    - grep b
+    - sort
