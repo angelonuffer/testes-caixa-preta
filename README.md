@@ -18,11 +18,19 @@ Os testes devem ser criados em arquivos `.yaml` dentro do diretório `./testes/`
 - `comando`: O comando a ser rodado no shell.
 - `saída_esperada`: O valor de saída padrão (stdout) que deve ser verificado para considerar o teste como aprovado.
 
+## Execução Externa
+
+Para rodar os testes externamente, sem precisar clonar o repositório, você pode utilizar o seguinte comando:
+
+```sh
+nix run github:angelonuffer/testes-caixa-preta
+```
+
 ## Pré-requisitos
 
-Para rodar este projeto, você precisará ter instalado:
-- [Rust e Cargo](https://rustup.rs/) ou
-- [Nix](https://nixos.org/download.html) com suporte a *Flakes* ativado (fortemente recomendado).
+Para desenvolver ou executar este projeto localmente a partir do código-fonte, você precisará ter instalado:
+- [Nix](https://nixos.org/download.html) com suporte a *Flakes* ativado (fortemente recomendado) ou
+- [Rust e Cargo](https://rustup.rs/).
 
 ## Como Executar
 
