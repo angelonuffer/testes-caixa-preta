@@ -1,9 +1,7 @@
 - comando: echo 123
-  saída_esperada: 123
 
 - comando: cat
   entrada: "teste com entrada"
-  saída_esperada: "teste com entrada"
 
 - tubo:
   - entrada: |
@@ -11,10 +9,4 @@
       abacate
       cenoura
   - comando: grep b
-    saída_esperada: |
-      banana
-      abacate
   - comando: sort
-    saída_esperada: |
-      abacate
-      banana

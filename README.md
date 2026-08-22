@@ -4,19 +4,20 @@ Uma ferramenta de linha de comando simples em Rust para execução de testes de 
 
 ## Como funciona
 
-O programa lê iterativamente todos os arquivos `.yaml` presentes no diretório `./testes/`. Ele executa os comandos definidos utilizando o shell (`sh -c`) e compara a saída (stdout) resultante com o valor esperado estipulado no arquivo.
+O programa lê iterativamente todos os arquivos `.yaml` presentes no diretório `./testes/` (ignorando os arquivos de snapshot). Ele executa os comandos definidos utilizando o shell (`sh -c`) e captura a saída padrão (stdout), o erro padrão (stderr) e o código de saída (exit code).
+
+Na primeira execução, o programa cria automaticamente um arquivo de snapshot (ex: `arquivo-saídas.yaml`) com os resultados obtidos. Nas execuções subsequentes, o programa compara os resultados atuais com os salvos no snapshot para validar o teste.
 
 ## Estrutura de Testes
 
-Os testes devem ser criados em arquivos `.yaml` dentro do diretório `./testes/`. O formato segue uma lista de casos, conforme o exemplo abaixo:
+Os testes devem ser criados em arquivos `.yaml` dentro do diretório `./testes/`. O formato segue uma lista de casos, onde apenas o comando (e, opcionalmente, a entrada) precisa ser especificado:
 
 ```yaml
 - comando: echo "Olá, Mundo!"
-  saída_esperada: Olá, Mundo!
 ```
 
 - `comando`: O comando a ser rodado no shell.
-- `saída_esperada`: O valor de saída padrão (stdout) que deve ser verificado para considerar o teste como aprovado.
+- `entrada` (opcional): O conteúdo a ser enviado para a entrada padrão (stdin) do processo.
 
 ## Execução Externa
 

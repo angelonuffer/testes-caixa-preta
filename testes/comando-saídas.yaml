@@ -1,0 +1,16 @@
+- saida_padrao: '123'
+  erro_padrao: ''
+  codigo_saida: 0
+- saida_padrao: teste com entrada
+  erro_padrao: ''
+  codigo_saida: 0
+- - saida_padrao: |-
+      banana
+      abacate
+    erro_padrao: ''
+    codigo_saida: 0
+  - saida_padrao: |-
+      abacate
+      banana
+    erro_padrao: ''
+    codigo_saida: 0
