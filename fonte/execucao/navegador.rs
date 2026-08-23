@@ -15,8 +15,8 @@ pub fn testar_navegador(
 ) {
     *total += 1;
     print!(
-        "Testando cenário de navegador: `{}` ... ",
-        cenario_navegador.endereço
+        "Testando cenário de navegador: '{}' (`{}`) ... ",
+        cenario_navegador.cenario, cenario_navegador.endereço
     );
 
     let mut hasher = DefaultHasher::new();

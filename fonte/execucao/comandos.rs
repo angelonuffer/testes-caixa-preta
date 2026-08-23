@@ -11,7 +11,7 @@ pub fn testar_comandos(
     total: &mut usize,
 ) {
     *total += 1;
-    print!("Testando cenário ... ");
+    print!("Testando cenário '{}' ... ", cenario_comandos.cenario);
 
     let mut current_input = cenario_comandos.entrada.clone().unwrap_or_default();
     let mut cenario_falhou = false;

@@ -1,4 +1,5 @@
-- entrada: |
+- cenário: "Filtro e ordenação"
+  entrada: |
     banana
     abacate
     cenoura

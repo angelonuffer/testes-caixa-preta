@@ -31,11 +31,15 @@ pub enum Cenario {
 
 #[derive(Deserialize, Debug)]
 pub struct CenarioComandos {
+    #[serde(rename = "cenário")]
+    pub cenario: String,
     pub comandos: Vec<String>,
     pub entrada: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct CenarioNavegador {
+    #[serde(rename = "cenário")]
+    pub cenario: String,
     pub endereço: String,
 }

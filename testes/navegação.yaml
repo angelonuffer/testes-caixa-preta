@@ -1,1 +1,2 @@
-- endereço: https://example.com
+- cenário: "Acesso ao site exemplo"
+  endereço: https://example.com
