@@ -89,22 +89,22 @@ pub fn testar_comandos(
                                 println!("  Passo do cenário: {}", k + 1);
                                 if esperado[k].saida_padrao != cenario_results[k].saida_padrao {
                                     println!(
-                                        "    saida_padrao esperada: {}",
-                                        esperado[k].saida_padrao
+                                        "    saida_padrao esperada:\n{}",
+                                        format_output(&esperado[k].saida_padrao)
                                     );
                                     println!(
-                                        "    saida_padrao obtida:   {}",
-                                        cenario_results[k].saida_padrao
+                                        "    saida_padrao obtida:\n{}",
+                                        format_output(&cenario_results[k].saida_padrao)
                                     );
                                 }
                                 if esperado[k].erro_padrao != cenario_results[k].erro_padrao {
                                     println!(
-                                        "    erro_padrao esperado: {}",
-                                        esperado[k].erro_padrao
+                                        "    erro_padrao esperado:\n{}",
+                                        format_output(&esperado[k].erro_padrao)
                                     );
                                     println!(
-                                        "    erro_padrao obtido:   {}",
-                                        cenario_results[k].erro_padrao
+                                        "    erro_padrao obtido:\n{}",
+                                        format_output(&cenario_results[k].erro_padrao)
                                     );
                                 }
                                 if esperado[k].codigo_saida != cenario_results[k].codigo_saida {
@@ -136,5 +136,16 @@ pub fn testar_comandos(
             println!("GERADO");
             *passed += 1;
         }
+    }
+}
+
+fn format_output(s: &str) -> String {
+    if s.is_empty() {
+        "      (vazio)".to_string()
+    } else {
+        s.lines()
+            .map(|l| format!("      | {}", l))
+            .collect::<Vec<_>>()
+            .join("\n")
     }
 }
