@@ -12,7 +12,7 @@ pub struct ResultadoComando {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct ResultadoNavegador {
-    pub arquivo_gerado: String,
+    pub arquivos_gerados: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -41,5 +41,10 @@ pub struct CenarioComandos {
 pub struct CenarioNavegador {
     #[serde(rename = "cenário")]
     pub cenario: String,
+    pub navegação: Vec<PassoNavegacao>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct PassoNavegacao {
     pub endereço: String,
 }

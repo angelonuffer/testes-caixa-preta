@@ -15,13 +15,9 @@ pub fn testar_navegador(
 ) {
     *total += 1;
     print!(
-        "Testando cenário de navegador: '{}' (`{}`) ... ",
-        cenario_navegador.cenario, cenario_navegador.endereço
+        "Testando cenário de navegador: '{}' ... ",
+        cenario_navegador.cenario
     );
-
-    let mut hasher = DefaultHasher::new();
-    cenario_navegador.endereço.hash(&mut hasher);
-    let hash_str = format!("{:x}", hasher.finish());
 
     let telas_dir = Path::new("./testes/telas");
     if !telas_dir.exists()
@@ -31,55 +27,69 @@ pub fn testar_navegador(
         return;
     }
 
-    let screenshot_path = telas_dir.join(format!("{}.png", hash_str));
+    let mut arquivos_gerados = Vec::new();
 
-    let mut cmd = Command::new("chromium-browser");
-    cmd.arg("--headless")
-        .arg("--disable-gpu")
-        .arg("--no-sandbox")
-        .arg(format!(
-            "--screenshot={}",
-            screenshot_path.to_str().unwrap()
-        ))
-        .arg(&cenario_navegador.endereço);
+    for passo in &cenario_navegador.navegação {
+        let mut hasher = DefaultHasher::new();
+        passo.endereço.hash(&mut hasher);
+        let hash_str = format!("{:x}", hasher.finish());
 
-    let child = match cmd.spawn() {
-        Ok(c) => c,
-        Err(err) => {
-            println!("FALHOU (erro ao iniciar chromium-browser: {})", err);
+        let screenshot_path = telas_dir.join(format!("{}.png", hash_str));
+
+        let mut cmd = Command::new("chromium-browser");
+        cmd.arg("--headless")
+            .arg("--disable-gpu")
+            .arg("--no-sandbox")
+            .arg(format!(
+                "--screenshot={}",
+                screenshot_path.to_str().unwrap()
+            ))
+            .arg(&passo.endereço);
+
+        let child = match cmd.spawn() {
+            Ok(c) => c,
+            Err(err) => {
+                println!("FALHOU (erro ao iniciar chromium-browser: {})", err);
+                return;
+            }
+        };
+
+        let output = match child.wait_with_output() {
+            Ok(o) => o,
+            Err(err) => {
+                println!("FALHOU (erro ao aguardar processo: {})", err);
+                return;
+            }
+        };
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+            println!("FALHOU (comando falhou: {})", stderr);
             return;
         }
-    };
 
-    let output = match child.wait_with_output() {
-        Ok(o) => o,
-        Err(err) => {
-            println!("FALHOU (erro ao aguardar processo: {})", err);
+        if !screenshot_path.exists() {
+            println!("FALHOU (arquivo de screenshot não foi gerado)");
             return;
         }
-    };
 
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
-        println!("FALHOU (comando falhou: {})", stderr);
-        return;
+        arquivos_gerados.push(format!("testes/telas/{}.png", hash_str));
     }
 
-    let res = ResultadoNavegador {
-        arquivo_gerado: format!("testes/telas/{}.png", hash_str),
-    };
+    let res = ResultadoNavegador { arquivos_gerados };
 
     actual_results.push(ResultadoCenario::Navegador(res.clone()));
 
     if let Some(esperados) = expected_results {
         if idx < esperados.len() {
             if let ResultadoCenario::Navegador(ref esperado) = esperados[idx] {
-                if esperado.arquivo_gerado != res.arquivo_gerado {
+                if esperado.arquivos_gerados != res.arquivos_gerados {
                     println!("FALHOU");
-                    println!("  arquivo_gerado esperado: {}", esperado.arquivo_gerado);
-                    println!("  arquivo_gerado obtido:   {}", res.arquivo_gerado);
-                } else if !screenshot_path.exists() {
-                    println!("FALHOU (arquivo de screenshot não foi gerado)");
+                    println!(
+                        "  arquivos_gerados esperado: {:?}",
+                        esperado.arquivos_gerados
+                    );
+                    println!("  arquivos_gerados obtido:   {:?}", res.arquivos_gerados);
                 } else {
                     println!("PASSOU");
                     *passed += 1;
