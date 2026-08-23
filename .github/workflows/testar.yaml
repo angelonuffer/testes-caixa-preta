@@ -18,15 +18,11 @@ jobs:
     
     - name: Instalar Nix
       uses: DeterminateSystems/nix-installer-action@main
-      
-    - name: Magic Nix Cache
-      uses: DeterminateSystems/magic-nix-cache-action@main
 
     - name: Rust Cache
       uses: Swatinem/rust-cache@v2
+      with:
+        shared-key: "nix-rust"
 
-    - name: Build
-      run: nix develop -c cargo build --verbose
-
-    - name: Executar testes
+    - name: Executar testes (Build e Run)
       run: nix develop -c cargo run --verbose
