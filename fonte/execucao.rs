@@ -1,9 +1,7 @@
-mod comando;
 mod comandos;
 mod navegador;
 
 use crate::modelos::{Cenario, ResultadoCenario};
-use comando::testar_comando;
 use comandos::testar_comandos;
 use navegador::testar_navegador;
 
@@ -16,16 +14,6 @@ pub fn executar_cenario(
     total: &mut usize,
 ) {
     match caso {
-        Cenario::Comando(caso_comando) => {
-            testar_comando(
-                caso_comando,
-                idx,
-                expected_results,
-                actual_results,
-                passed,
-                total,
-            );
-        }
         Cenario::Comandos(cenario_comandos) => {
             testar_comandos(
                 cenario_comandos,

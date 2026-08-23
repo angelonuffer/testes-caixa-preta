@@ -1,8 +1,3 @@
-- comando: echo 123
-
-- comando: cat
-  entrada: "teste com entrada"
-
 - entrada: |
     banana
     abacate

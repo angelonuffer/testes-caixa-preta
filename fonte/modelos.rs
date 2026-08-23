@@ -15,7 +15,6 @@ pub struct ResultadoNavegador {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[serde(untagged)]
 pub enum ResultadoCenario {
-    Comando(ResultadoComando),
     Comandos(Vec<ResultadoComando>),
     Navegador(ResultadoNavegador),
 }
@@ -23,15 +22,8 @@ pub enum ResultadoCenario {
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
 pub enum Cenario {
-    Comando(CenarioComando),
     Comandos(CenarioComandos),
     Navegador(CenarioNavegador),
-}
-
-#[derive(Deserialize, Debug)]
-pub struct CenarioComando {
-    pub comando: String,
-    pub entrada: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
