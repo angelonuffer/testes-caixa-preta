@@ -1,9 +1,10 @@
 mod comandos;
-mod navegador;
+#[path = "execucao/navegação.rs"]
+mod navegação;
 
 use crate::modelos::{Cenario, ResultadoCenario};
 use comandos::testar_comandos;
-use navegador::testar_navegador;
+use navegação::testar_navegador;
 
 pub fn executar_cenario(
     caso: &Cenario,
