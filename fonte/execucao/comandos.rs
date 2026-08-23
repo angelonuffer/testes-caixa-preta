@@ -89,31 +89,31 @@ pub fn testar_comandos(
                                 println!("  Passo do cenário: {}", k + 1);
                                 if esperado[k].saida_padrao != cenario_results[k].saida_padrao {
                                     println!(
-                                        "    saida_padrao esperada:\n{}",
+                                        "    saída_padrão esperada:\n{}",
                                         format_output(&esperado[k].saida_padrao)
                                     );
                                     println!(
-                                        "    saida_padrao obtida:\n{}",
+                                        "    saída_padrão obtida:\n{}",
                                         format_output(&cenario_results[k].saida_padrao)
                                     );
                                 }
                                 if esperado[k].erro_padrao != cenario_results[k].erro_padrao {
                                     println!(
-                                        "    erro_padrao esperado:\n{}",
+                                        "    erro_padrão esperado:\n{}",
                                         format_output(&esperado[k].erro_padrao)
                                     );
                                     println!(
-                                        "    erro_padrao obtido:\n{}",
+                                        "    erro_padrão obtido:\n{}",
                                         format_output(&cenario_results[k].erro_padrao)
                                     );
                                 }
                                 if esperado[k].codigo_saida != cenario_results[k].codigo_saida {
                                     println!(
-                                        "    codigo_saida esperado: {}",
+                                        "    código_saída esperado: {}",
                                         esperado[k].codigo_saida
                                     );
                                     println!(
-                                        "    codigo_saida obtido:   {}",
+                                        "    código_saída obtido:   {}",
                                         cenario_results[k].codigo_saida
                                     );
                                 }

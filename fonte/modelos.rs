@@ -2,8 +2,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct ResultadoComando {
+    #[serde(rename = "saída_padrão")]
     pub saida_padrao: String,
+    #[serde(rename = "erro_padrão")]
     pub erro_padrao: String,
+    #[serde(rename = "código_saída")]
     pub codigo_saida: i32,
 }
 

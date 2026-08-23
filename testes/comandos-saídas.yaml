@@ -1,10 +1,10 @@
-- - saida_padrao: |-
+- - saída_padrão: |-
       banana
       abacate
-    erro_padrao: ''
-    codigo_saida: 0
-  - saida_padrao: |-
+    erro_padrão: ''
+    código_saída: 0
+  - saída_padrão: |-
       abacate
       banana
-    erro_padrao: ''
-    codigo_saida: 0
+    erro_padrão: ''
+    código_saída: 0
