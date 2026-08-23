@@ -10,25 +10,31 @@ Na primeira execução, o programa cria automaticamente um arquivo de snapshot (
 
 ## Estrutura de Testes
 
-Os testes devem ser criados em arquivos `.yaml` dentro do diretório `./testes/`. O formato segue uma lista de **cenários**, onde você pode especificar um comando único, múltiplos comandos encadeados (opcionalmente com uma entrada), ou um teste de navegador:
+Os testes devem ser criados em arquivos `.yaml` dentro do diretório `./testes/`. O formato segue uma lista de **cenários**, que obrigatoriamente possuem um nome (`cenário`), e podem ser do tipo comandos encadeados (opcionalmente com uma `entrada`) ou testes de navegador (`navegação`):
 
 ```yaml
-- comando: echo "Olá, Mundo!"
+- cenário: "Teste de echo"
+  comandos:
+    - echo "Olá, Mundo!"
 
-- entrada: |
+- cenário: "Teste com entrada e encadeamento"
+  entrada: |
     banana
     abacate
   comandos:
     - grep b
     - sort
 
-- endereço: https://example.com
+- cenário: "Teste de captura de tela"
+  navegação:
+    - endereço: https://example.com
 ```
 
-- `comando`: O comando a ser rodado no shell (para cenários de um único passo).
-- `comandos`: Lista de comandos a serem rodados no shell (para cenários de múltiplos passos onde a saída de um é a entrada do próximo).
-- `entrada` (opcional): O conteúdo a ser enviado para a entrada padrão (stdin) do cenário.
-- `endereço`: A URL de uma página para gerar uma captura de tela (headless screenshot) no diretório `testes/telas/`.
+- `cenário`: Nome descritivo do cenário de teste, que será exibido no relatório.
+- `comandos`: Lista de comandos a serem rodados no shell (a saída padrão de um é passada como entrada padrão para o próximo).
+- `entrada` (opcional): O conteúdo a ser enviado para a entrada padrão (stdin) do primeiro comando.
+- `navegação`: Lista de passos para testes no navegador. Atualmente, cada passo pode conter:
+  - `endereço`: A URL da página para acessar e gerar uma captura de tela (headless screenshot) no diretório `testes/telas/`.
 
 ## Execução Externa
 

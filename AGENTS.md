@@ -9,5 +9,5 @@
 
 ## Testes Caixa-Preta
 - Para adicionar novos testes de caixa-preta, crie ou edite arquivos `.yaml` dentro do diretório `./testes/`.
-- O formato dos testes é uma lista de cenários contendo `comando` ou `comandos` (e opcionalmente `entrada`), ou uma lista `navegação` de passos contendo `endereço` (para cenários de navegador).
+- O formato dos testes é uma lista de objetos onde cada um contém obrigatoriamente um nome descritivo (`cenário`) e, dependendo do tipo de teste, uma lista de `comandos` de shell (opcionalmente com `entrada`) ou uma lista de `navegação` com passos contendo `endereço` (para cenários de navegador).
 - O sistema usa snapshots: na primeira execução (quando não há arquivo gerado), ele roda os comandos e cria um arquivo `-saídas.yaml` com as saídas esperadas. Em execuções seguintes, ele verifica a integridade contra esse snapshot.
