@@ -1,7 +1,8 @@
 use crate::modelos::{CenarioNavegador, ResultadoCenario, ResultadoNavegador};
+use std::collections::BTreeMap;
 use std::collections::hash_map::DefaultHasher;
 use std::fs;
-use std::hash::{Hash, Hasher};
+use std::hash::Hasher;
 use std::io::Write;
 use std::path::Path;
 use std::process::{Command, Stdio};
@@ -29,14 +30,10 @@ pub fn testar_navegador(
         return;
     }
 
-    let mut arquivos_gerados = Vec::new();
+    let mut arquivos = BTreeMap::new();
 
     for passo in &cenario_navegador.navegação {
-        let mut hasher = DefaultHasher::new();
-        passo.endereço.hash(&mut hasher);
-        let hash_str = format!("{:x}", hasher.finish());
-
-        let screenshot_path = telas_dir.join(format!("{}.png", hash_str));
+        let screenshot_path = telas_dir.join(&passo.arquivo);
 
         let mut cmd = Command::new("chromium-browser");
         cmd.arg("--headless")
@@ -83,23 +80,25 @@ pub fn testar_navegador(
             return;
         }
 
-        arquivos_gerados.push(format!("testes/telas/{}.png", hash_str));
+        let content = fs::read(&screenshot_path).unwrap_or_default();
+        let mut hasher = DefaultHasher::new();
+        hasher.write(&content);
+        let hash_str = format!("{:x}", hasher.finish());
+
+        arquivos.insert(passo.arquivo.clone(), hash_str);
     }
 
-    let res = ResultadoNavegador { arquivos_gerados };
+    let res = ResultadoNavegador { arquivos };
 
     actual_results.push(ResultadoCenario::Navegador(res.clone()));
 
     if let Some(esperados) = expected_results {
         if idx < esperados.len() {
             if let ResultadoCenario::Navegador(ref esperado) = esperados[idx] {
-                if esperado.arquivos_gerados != res.arquivos_gerados {
+                if esperado.arquivos != res.arquivos {
                     println!("\x1b[1;31m❌ FALHOU\x1b[0m");
-                    println!(
-                        "    arquivos_gerados esperado: {:?}",
-                        esperado.arquivos_gerados
-                    );
-                    println!("    arquivos_gerados obtido:   {:?}", res.arquivos_gerados);
+                    println!("    arquivos esperado: {:?}", esperado.arquivos);
+                    println!("    arquivos obtido:   {:?}", res.arquivos);
                 } else {
                     println!("\x1b[1;32m✅ PASSOU\x1b[0m");
                     *passed += 1;

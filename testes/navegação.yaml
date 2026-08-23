@@ -1,3 +1,4 @@
 - cenário: "Acesso ao site exemplo"
   navegação:
     - endereço: "testes/exemplo.html"
+      arquivo: "exemplo.png"

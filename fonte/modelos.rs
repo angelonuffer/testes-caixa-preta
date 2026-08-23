@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct ResultadoComando {
@@ -12,7 +13,7 @@ pub struct ResultadoComando {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct ResultadoNavegador {
-    pub arquivos_gerados: Vec<String>,
+    pub arquivos: BTreeMap<String, String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -47,4 +48,5 @@ pub struct CenarioNavegador {
 #[derive(Deserialize, Debug)]
 pub struct PassoNavegacao {
     pub endereço: String,
+    pub arquivo: String,
 }
