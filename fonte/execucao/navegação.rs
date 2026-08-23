@@ -3,7 +3,7 @@ use std::collections::hash_map::DefaultHasher;
 use std::fs;
 use std::hash::{Hash, Hasher};
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 pub fn testar_navegador(
     cenario_navegador: &CenarioNavegador,
@@ -44,7 +44,9 @@ pub fn testar_navegador(
                 "--screenshot={}",
                 screenshot_path.to_str().unwrap()
             ))
-            .arg(&passo.endereço);
+            .arg(&passo.endereço)
+            .stdout(Stdio::null())
+            .stderr(Stdio::piped());
 
         let child = match cmd.spawn() {
             Ok(c) => c,
