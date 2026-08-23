@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulário</title>
+</head>
+<body>
+    <h1>Formulário de Cadastro</h1>
+    <form id="meuForm">
+        <input type="text" id="nome">
+        <button type="submit">Salvar</button>
+    </form>
+    <p id="status">Aguardando...</p>
+    <script>
+        document.getElementById('meuForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nome = document.getElementById('nome').value;
+            
+            const request = indexedDB.open('MeuBancoDados', 1);
+            
+            request.onupgradeneeded = function(event) {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains('usuarios')) {
+                    db.createObjectStore('usuarios', { keyPath: 'id' });
+                }
+            };
+            
+            request.onsuccess = function(event) {
+                const db = event.target.result;
+                const transaction = db.transaction(['usuarios'], 'readwrite');
+                const store = transaction.objectStore('usuarios');
+                store.put({ id: 1, nome: nome });
+                
+                transaction.oncomplete = function() {
+                    document.getElementById('status').textContent = 'Salvo com sucesso!';
+                };
+            };
+        });
+    </script>
+</body>
+</html>

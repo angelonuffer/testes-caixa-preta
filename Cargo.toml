@@ -6,6 +6,8 @@ edition = "2024"
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"
+headless_chrome = { version = "1.0", features = ["fetch"] }
+anyhow = "1.0"
 
 [[bin]]
 name = "testes-caixa-preta"

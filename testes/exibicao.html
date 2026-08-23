@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Exibição</title>
+</head>
+<body>
+    <h1>Dados Salvos</h1>
+    <p id="resultado">Carregando...</p>
+    <script>
+        const request = indexedDB.open('MeuBancoDados', 1);
+        
+        request.onsuccess = function(event) {
+            const db = event.target.result;
+            // Check if store exists, otherwise it might not have been created
+            if (!db.objectStoreNames.contains('usuarios')) {
+                document.getElementById('resultado').textContent = 'Nenhum dado encontrado.';
+                return;
+            }
+            const transaction = db.transaction(['usuarios'], 'readonly');
+            const store = transaction.objectStore('usuarios');
+            const getReq = store.get(1);
+            
+            getReq.onsuccess = function(e) {
+                if (e.target.result) {
+                    document.getElementById('resultado').textContent = 'Nome: ' + e.target.result.nome;
+                } else {
+                    document.getElementById('resultado').textContent = 'Nenhum dado encontrado.';
+                }
+            };
+            getReq.onerror = function() {
+                document.getElementById('resultado').textContent = 'Erro ao ler dados.';
+            };
+        };
+        request.onerror = function() {
+            document.getElementById('resultado').textContent = 'Erro ao abrir banco.';
+        };
+    </script>
+</body>
+</html>

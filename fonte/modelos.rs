@@ -49,4 +49,6 @@ pub struct CenarioNavegador {
 pub struct PassoNavegacao {
     pub endereço: String,
     pub arquivo: String,
+    pub formulário: Option<std::collections::HashMap<String, String>>,
+    pub esperar: Option<String>,
 }
