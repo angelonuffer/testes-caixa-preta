@@ -9,7 +9,7 @@ use std::path::Path;
 fn main() {
     let testes_dir = Path::new("./testes");
     if !testes_dir.exists() {
-        eprintln!("Diretório ./testes não encontrado.");
+        eprintln!("\x1b[1;31m❌ Diretório ./testes não encontrado.\x1b[0m");
         std::process::exit(1);
     }
 
@@ -19,7 +19,10 @@ fn main() {
     let entries = match fs::read_dir(testes_dir) {
         Ok(e) => e,
         Err(err) => {
-            eprintln!("Falha ao ler o diretório ./testes: {}", err);
+            eprintln!(
+                "\x1b[1;31m❌ Falha ao ler o diretório ./testes: {}\x1b[0m",
+                err
+            );
             std::process::exit(1);
         }
     };
@@ -44,7 +47,11 @@ fn main() {
         let content = match fs::read_to_string(&path) {
             Ok(c) => c,
             Err(err) => {
-                eprintln!("Falha ao ler o arquivo {}: {}", path.display(), err);
+                eprintln!(
+                    "\x1b[1;31m❌ Falha ao ler o arquivo {}: {}\x1b[0m",
+                    path.display(),
+                    err
+                );
                 continue;
             }
         };
@@ -52,7 +59,11 @@ fn main() {
         let casos: Vec<Cenario> = match serde_yaml::from_str(&content) {
             Ok(c) => c,
             Err(err) => {
-                eprintln!("Erro ao fazer parse do arquivo {}: {}", path.display(), err);
+                eprintln!(
+                    "\x1b[1;31m❌ Erro ao fazer parse do arquivo {}: {}\x1b[0m",
+                    path.display(),
+                    err
+                );
                 continue;
             }
         };
@@ -73,7 +84,7 @@ fn main() {
                 Ok(c) => c,
                 Err(err) => {
                     eprintln!(
-                        "Falha ao ler o arquivo de saídas {}: {}",
+                        "\x1b[1;31m❌ Falha ao ler o arquivo de saídas {}: {}\x1b[0m",
                         saidas_arquivo.display(),
                         err
                     );
@@ -84,7 +95,7 @@ fn main() {
                 Ok(c) => Some(c),
                 Err(err) => {
                     eprintln!(
-                        "Erro ao fazer parse do arquivo de saídas {}: {}",
+                        "\x1b[1;31m❌ Erro ao fazer parse do arquivo de saídas {}: {}\x1b[0m",
                         saidas_arquivo.display(),
                         err
                     );
@@ -95,7 +106,7 @@ fn main() {
 
         let mut actual_results: Vec<ResultadoCenario> = Vec::new();
 
-        println!("Executando testes do arquivo: {}", path.display());
+        println!("\x1b[1;34m📄 {}\x1b[0m", path.display());
 
         for (idx, caso) in casos.iter().enumerate() {
             executar_cenario(
@@ -112,20 +123,30 @@ fn main() {
             let serialized = serde_yaml::to_string(&actual_results).unwrap();
             if let Err(err) = fs::write(&saidas_arquivo, serialized) {
                 eprintln!(
-                    "Falha ao salvar o arquivo de saídas {}: {}",
+                    "\x1b[1;31m❌ Falha ao salvar o arquivo de saídas {}: {}\x1b[0m",
                     saidas_arquivo.display(),
                     err
                 );
             } else {
                 println!(
-                    "Arquivo de saídas {} gerado com sucesso.",
+                    "\x1b[1;32m💾 Arquivo de saídas {} gerado com sucesso.\x1b[0m",
                     saidas_arquivo.display()
                 );
             }
         }
     }
 
-    println!("\nRelatório: {}/{} testes passaram.", passed, total);
+    let cor_relatorio = if passed == total {
+        "\x1b[1;32m"
+    } else {
+        "\x1b[1;31m"
+    };
+    let emoji_relatorio = if passed == total { "✅" } else { "❌" };
+    println!(
+        "\n{}{} {}/{} testes passaram.\x1b[0m",
+        cor_relatorio, emoji_relatorio, passed, total
+    );
+
     if passed < total {
         std::process::exit(1);
     }

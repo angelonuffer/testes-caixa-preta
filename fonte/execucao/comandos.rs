@@ -11,7 +11,8 @@ pub fn testar_comandos(
     total: &mut usize,
 ) {
     *total += 1;
-    print!("Testando cenário '{}' ... ", cenario_comandos.cenario);
+    print!("  \x1b[1m{}\x1b[0m ... ", cenario_comandos.cenario);
+    let _ = std::io::stdout().flush();
 
     let mut current_input = cenario_comandos.entrada.clone().unwrap_or_default();
     let mut cenario_falhou = false;
@@ -28,7 +29,11 @@ pub fn testar_comandos(
         let mut child = match cmd.spawn() {
             Ok(c) => c,
             Err(err) => {
-                println!("FALHOU (passo {} erro ao iniciar processo: {})", i + 1, err);
+                println!(
+                    "\x1b[1;31m❌ FALHOU\x1b[0m (passo {} erro ao iniciar processo: {})",
+                    i + 1,
+                    err
+                );
                 cenario_falhou = true;
                 break;
             }
@@ -42,7 +47,7 @@ pub fn testar_comandos(
             Ok(o) => o,
             Err(err) => {
                 println!(
-                    "FALHOU (passo {} erro ao aguardar processo: {})",
+                    "\x1b[1;31m❌ FALHOU\x1b[0m (passo {} erro ao aguardar processo: {})",
                     i + 1,
                     err
                 );
@@ -73,7 +78,7 @@ pub fn testar_comandos(
                     let mut fail = false;
                     if esperado.len() != cenario_results.len() {
                         println!(
-                            "FALHOU (quantidade de comandos no cenário não corresponde ao snapshot)"
+                            "\x1b[1;31m❌ FALHOU\x1b[0m (quantidade de comandos no cenário não corresponde ao snapshot)"
                         );
                         fail = true;
                     } else {
@@ -83,37 +88,37 @@ pub fn testar_comandos(
                                 || esperado[k].codigo_saida != cenario_results[k].codigo_saida
                             {
                                 if !fail {
-                                    println!("FALHOU");
+                                    println!("\x1b[1;31m❌ FALHOU\x1b[0m");
                                     fail = true;
                                 }
-                                println!("  Passo do cenário: {}", k + 1);
+                                println!("    Passo do cenário: {}", k + 1);
                                 if esperado[k].saida_padrao != cenario_results[k].saida_padrao {
                                     println!(
-                                        "    saída_padrão esperada:\n{}",
+                                        "      saída_padrão esperada:\n{}",
                                         format_output(&esperado[k].saida_padrao)
                                     );
                                     println!(
-                                        "    saída_padrão obtida:\n{}",
+                                        "      saída_padrão obtida:\n{}",
                                         format_output(&cenario_results[k].saida_padrao)
                                     );
                                 }
                                 if esperado[k].erro_padrao != cenario_results[k].erro_padrao {
                                     println!(
-                                        "    erro_padrão esperado:\n{}",
+                                        "      erro_padrão esperado:\n{}",
                                         format_output(&esperado[k].erro_padrao)
                                     );
                                     println!(
-                                        "    erro_padrão obtido:\n{}",
+                                        "      erro_padrão obtido:\n{}",
                                         format_output(&cenario_results[k].erro_padrao)
                                     );
                                 }
                                 if esperado[k].codigo_saida != cenario_results[k].codigo_saida {
                                     println!(
-                                        "    código_saída esperado: {}",
+                                        "      código_saída esperado: {}",
                                         esperado[k].codigo_saida
                                     );
                                     println!(
-                                        "    código_saída obtido:   {}",
+                                        "      código_saída obtido:   {}",
                                         cenario_results[k].codigo_saida
                                     );
                                 }
@@ -121,19 +126,21 @@ pub fn testar_comandos(
                         }
                     }
                     if !fail {
-                        println!("PASSOU");
+                        println!("\x1b[1;32m✅ PASSOU\x1b[0m");
                         *passed += 1;
                     }
                 } else {
-                    println!("FALHOU (tipo incompatível no snapshot, esperado Comandos)");
+                    println!(
+                        "\x1b[1;31m❌ FALHOU\x1b[0m (tipo incompatível no snapshot, esperado Comandos)"
+                    );
                 }
             } else {
                 println!(
-                    "FALHOU (não há saída correspondente no arquivo de snapshot para o cenário)"
+                    "\x1b[1;31m❌ FALHOU\x1b[0m (não há saída correspondente no arquivo de snapshot para o cenário)"
                 );
             }
         } else {
-            println!("GERADO");
+            println!("\x1b[1;33m📝 GERADO\x1b[0m");
             *passed += 1;
         }
     }
@@ -141,10 +148,10 @@ pub fn testar_comandos(
 
 fn format_output(s: &str) -> String {
     if s.is_empty() {
-        "      (vazio)".to_string()
+        "        (vazio)".to_string()
     } else {
         s.lines()
-            .map(|l| format!("      | {}", l))
+            .map(|l| format!("        | {}", l))
             .collect::<Vec<_>>()
             .join("\n")
     }

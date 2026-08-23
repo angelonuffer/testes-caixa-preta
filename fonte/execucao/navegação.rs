@@ -2,6 +2,7 @@ use crate::modelos::{CenarioNavegador, ResultadoCenario, ResultadoNavegador};
 use std::collections::hash_map::DefaultHasher;
 use std::fs;
 use std::hash::{Hash, Hasher};
+use std::io::Write;
 use std::path::Path;
 use std::process::{Command, Stdio};
 
@@ -14,16 +15,17 @@ pub fn testar_navegador(
     total: &mut usize,
 ) {
     *total += 1;
-    print!(
-        "Testando cenário de navegador: '{}' ... ",
-        cenario_navegador.cenario
-    );
+    print!("  \x1b[1m{}\x1b[0m ... ", cenario_navegador.cenario);
+    let _ = std::io::stdout().flush();
 
     let telas_dir = Path::new("./testes/telas");
     if !telas_dir.exists()
         && let Err(err) = fs::create_dir_all(telas_dir)
     {
-        println!("FALHOU (erro ao criar diretório telas: {})", err);
+        println!(
+            "\x1b[1;31m❌ FALHOU\x1b[0m (erro ao criar diretório telas: {})",
+            err
+        );
         return;
     }
 
@@ -51,7 +53,10 @@ pub fn testar_navegador(
         let child = match cmd.spawn() {
             Ok(c) => c,
             Err(err) => {
-                println!("FALHOU (erro ao iniciar chromium-browser: {})", err);
+                println!(
+                    "\x1b[1;31m❌ FALHOU\x1b[0m (erro ao iniciar chromium-browser: {})",
+                    err
+                );
                 return;
             }
         };
@@ -59,19 +64,22 @@ pub fn testar_navegador(
         let output = match child.wait_with_output() {
             Ok(o) => o,
             Err(err) => {
-                println!("FALHOU (erro ao aguardar processo: {})", err);
+                println!(
+                    "\x1b[1;31m❌ FALHOU\x1b[0m (erro ao aguardar processo: {})",
+                    err
+                );
                 return;
             }
         };
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
-            println!("FALHOU (comando falhou: {})", stderr);
+            println!("\x1b[1;31m❌ FALHOU\x1b[0m (comando falhou: {})", stderr);
             return;
         }
 
         if !screenshot_path.exists() {
-            println!("FALHOU (arquivo de screenshot não foi gerado)");
+            println!("\x1b[1;31m❌ FALHOU\x1b[0m (arquivo de screenshot não foi gerado)");
             return;
         }
 
@@ -86,24 +94,28 @@ pub fn testar_navegador(
         if idx < esperados.len() {
             if let ResultadoCenario::Navegador(ref esperado) = esperados[idx] {
                 if esperado.arquivos_gerados != res.arquivos_gerados {
-                    println!("FALHOU");
+                    println!("\x1b[1;31m❌ FALHOU\x1b[0m");
                     println!(
-                        "  arquivos_gerados esperado: {:?}",
+                        "    arquivos_gerados esperado: {:?}",
                         esperado.arquivos_gerados
                     );
-                    println!("  arquivos_gerados obtido:   {:?}", res.arquivos_gerados);
+                    println!("    arquivos_gerados obtido:   {:?}", res.arquivos_gerados);
                 } else {
-                    println!("PASSOU");
+                    println!("\x1b[1;32m✅ PASSOU\x1b[0m");
                     *passed += 1;
                 }
             } else {
-                println!("FALHOU (tipo incompatível no snapshot, esperado Navegador)");
+                println!(
+                    "\x1b[1;31m❌ FALHOU\x1b[0m (tipo incompatível no snapshot, esperado Navegador)"
+                );
             }
         } else {
-            println!("FALHOU (não há saída correspondente no arquivo de snapshot)");
+            println!(
+                "\x1b[1;31m❌ FALHOU\x1b[0m (não há saída correspondente no arquivo de snapshot)"
+            );
         }
     } else {
-        println!("GERADO");
+        println!("\x1b[1;33m📝 GERADO\x1b[0m");
         *passed += 1;
     }
 }
