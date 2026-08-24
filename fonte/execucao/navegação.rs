@@ -41,17 +41,22 @@ pub fn testar_navegador(
         .path(Some(std::path::PathBuf::from("chromium-browser")))
         .port(Some(0))
         .args(vec![
+            std::ffi::OsStr::new("--no-sandbox"),
+            std::ffi::OsStr::new("--disable-gpu"),
             std::ffi::OsStr::new("--allow-file-access-from-files"),
             std::ffi::OsStr::new("--disable-web-security"),
             std::ffi::OsStr::new("--user-data-dir=./testes/chrome-profile"),
         ])
         .build()
         .unwrap_or_default();
-    
+
     let browser = match headless_chrome::Browser::new(options) {
         Ok(b) => b,
         Err(e) => {
-            println!("\x1b[1;31m❌ FALHOU\x1b[0m (erro ao iniciar navegador: {})", e);
+            println!(
+                "\x1b[1;31m❌ FALHOU\x1b[0m (erro ao iniciar navegador: {})",
+                e
+            );
             return;
         }
     };
@@ -70,17 +75,20 @@ pub fn testar_navegador(
         let screenshot_path = telas_dir.join(&passo.arquivo);
         let path = cur_dir.join(&passo.endereço);
         let url = format!("file://{}", path.display());
-        
+
         if let Err(e) = tab.navigate_to(&url) {
             println!("\x1b[1;31m❌ FALHOU\x1b[0m (erro ao navegar: {})", e);
             return;
         }
-        
+
         if let Err(e) = tab.wait_until_navigated() {
-            println!("\x1b[1;31m❌ FALHOU\x1b[0m (erro aguardando carregamento: {})", e);
+            println!(
+                "\x1b[1;31m❌ FALHOU\x1b[0m (erro aguardando carregamento: {})",
+                e
+            );
             return;
         }
-        
+
         // Espera para dar tempo ao JS da pagina executar
         std::thread::sleep(std::time::Duration::from_millis(500));
 
@@ -91,20 +99,22 @@ pub fn testar_navegador(
                     println!("Erro ao injetar valor no input {}: {:?}", id, e);
                 }
             }
-            if let Ok(_) = tab.find_element("button[type=\"submit\"]") {
-                let _ = tab.evaluate("document.querySelector('button[type=\"submit\"]').click()", false);
+            if tab.find_element("button[type=\"submit\"]").is_ok() {
+                let _ = tab.evaluate(
+                    "document.querySelector('button[type=\"submit\"]').click()",
+                    false,
+                );
             }
         }
-        
+
         if let Some(cond) = &passo.esperar {
             let mut tentativas = 0;
             while tentativas < 50 {
-                if let Ok(res) = tab.evaluate(&format!("!!({})", cond), false) {
-                    if let Some(val) = res.value {
-                        if val.as_bool().unwrap_or(false) {
-                            break;
-                        }
-                    }
+                if let Ok(res) = tab.evaluate(&format!("!!({})", cond), false)
+                    && let Some(val) = res.value
+                    && val.as_bool().unwrap_or(false)
+                {
+                    break;
                 }
                 std::thread::sleep(std::time::Duration::from_millis(100));
                 tentativas += 1;
@@ -119,13 +129,19 @@ pub fn testar_navegador(
         ) {
             Ok(d) => d,
             Err(e) => {
-                println!("\x1b[1;31m❌ FALHOU\x1b[0m (erro ao tirar screenshot: {})", e);
+                println!(
+                    "\x1b[1;31m❌ FALHOU\x1b[0m (erro ao tirar screenshot: {})",
+                    e
+                );
                 return;
             }
         };
 
         if let Err(e) = fs::write(&screenshot_path, &png_data) {
-            println!("\x1b[1;31m❌ FALHOU\x1b[0m (erro ao salvar screenshot: {})", e);
+            println!(
+                "\x1b[1;31m❌ FALHOU\x1b[0m (erro ao salvar screenshot: {})",
+                e
+            );
             return;
         }
 
