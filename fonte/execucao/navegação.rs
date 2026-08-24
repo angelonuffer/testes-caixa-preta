@@ -39,6 +39,7 @@ pub fn testar_navegador(
 
     let options = headless_chrome::LaunchOptions::default_builder()
         .path(Some(std::path::PathBuf::from("chromium-browser")))
+        .port(Some(0))
         .args(vec![
             std::ffi::OsStr::new("--allow-file-access-from-files"),
             std::ffi::OsStr::new("--disable-web-security"),
