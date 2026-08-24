@@ -89,9 +89,6 @@ pub fn testar_navegador(
             return;
         }
 
-        // Espera para dar tempo ao JS da pagina executar
-        std::thread::sleep(std::time::Duration::from_millis(500));
-
         if let Some(form) = &passo.formulário {
             for (id, val) in form {
                 let selector = format!("#{}", id);
@@ -107,17 +104,57 @@ pub fn testar_navegador(
             }
         }
 
-        if let Some(cond) = &passo.esperar {
+        if let Some(texto) = &passo.esperar_exibição {
             let mut tentativas = 0;
+            let mut sucesso = false;
+            let cond = format!(
+                "document.body && document.body.innerText.includes(`{}`)",
+                texto
+            );
             while tentativas < 50 {
                 if let Ok(res) = tab.evaluate(&format!("!!({})", cond), false)
                     && let Some(val) = res.value
                     && val.as_bool().unwrap_or(false)
                 {
+                    sucesso = true;
                     break;
                 }
                 std::thread::sleep(std::time::Duration::from_millis(100));
                 tentativas += 1;
+            }
+            if !sucesso {
+                println!(
+                    "\x1b[1;31m❌ FALHOU\x1b[0m (tempo esgotado aguardando exibição de '{}')",
+                    texto
+                );
+                return;
+            }
+        }
+
+        if let Some(texto) = &passo.esperar_ocultação {
+            let mut tentativas = 0;
+            let mut sucesso = false;
+            let cond = format!(
+                "document.body && !document.body.innerText.includes(`{}`)",
+                texto
+            );
+            while tentativas < 50 {
+                if let Ok(res) = tab.evaluate(&format!("!!({})", cond), false)
+                    && let Some(val) = res.value
+                    && val.as_bool().unwrap_or(false)
+                {
+                    sucesso = true;
+                    break;
+                }
+                std::thread::sleep(std::time::Duration::from_millis(100));
+                tentativas += 1;
+            }
+            if !sucesso {
+                println!(
+                    "\x1b[1;31m❌ FALHOU\x1b[0m (tempo esgotado aguardando ocultação de '{}')",
+                    texto
+                );
+                return;
             }
         }
 

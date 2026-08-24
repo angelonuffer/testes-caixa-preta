@@ -8,7 +8,7 @@
       arquivo: "formulario_salvo.png"
       formulário:
         nome: "Fulano de Tal"
-      esperar: "document.getElementById('status') && document.getElementById('status').textContent.includes('Salvo com sucesso')"
+      esperar_exibição: "Salvo com sucesso"
     - endereço: "testes/exibicao.html"
       arquivo: "exibicao_dados.png"
-      esperar: "document.getElementById('resultado') && !document.getElementById('resultado').textContent.includes('Carregando')"
+      esperar_ocultação: "Carregando"

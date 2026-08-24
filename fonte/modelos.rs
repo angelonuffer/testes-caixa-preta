@@ -50,5 +50,6 @@ pub struct PassoNavegacao {
     pub endereço: String,
     pub arquivo: String,
     pub formulário: Option<std::collections::HashMap<String, String>>,
-    pub esperar: Option<String>,
+    pub esperar_exibição: Option<String>,
+    pub esperar_ocultação: Option<String>,
 }

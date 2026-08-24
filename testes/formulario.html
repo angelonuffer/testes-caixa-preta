@@ -32,7 +32,9 @@
                 store.put({ id: 1, nome: nome });
                 
                 transaction.oncomplete = function() {
-                    document.getElementById('status').textContent = 'Salvo com sucesso!';
+                    setTimeout(function() {
+                        document.getElementById('status').textContent = 'Salvo com sucesso!';
+                    }, 1000);
                 };
             };
         });
