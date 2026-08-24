@@ -2,6 +2,7 @@
 
 ## Configuração de Ambiente
 - Sempre utilize `nix develop` para executar comandos que necessitem de dependências de desenvolvimento, ferramentas ou um ambiente específico, garantindo que você está trabalhando no ambiente Nix correto para este projeto.
+- Certifique-se de executar os comandos do Nix (como `nix develop`) sempre fora do sandbox (`BypassSandbox: true`).
 
 ## Desenvolvimento em Rust
 - Ao modificar o código em Rust, sempre verifique se o código está devidamente formatado rodando `cargo fmt` e sem avisos de linting rodando `cargo clippy`.
