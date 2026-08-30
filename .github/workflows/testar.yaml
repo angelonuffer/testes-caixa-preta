@@ -26,3 +26,10 @@ jobs:
 
     - name: Executar testes (Build e Run)
       run: nix develop -c cargo run --verbose
+
+    - name: Upload servidor.log
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: servidor-log
+        path: testes/servidor.log

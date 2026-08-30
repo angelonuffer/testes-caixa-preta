@@ -25,6 +25,15 @@ fn main() {
     struct KillOnDrop(std::process::Child);
     impl Drop for KillOnDrop {
         fn drop(&mut self) {
+            #[cfg(unix)]
+            {
+                let pid = self.0.id().to_string();
+                let _ = std::process::Command::new("kill")
+                    .arg("-TERM")
+                    .arg(&pid)
+                    .status();
+                std::thread::sleep(std::time::Duration::from_millis(500));
+            }
             let _ = self.0.kill();
         }
     }
@@ -33,23 +42,37 @@ fn main() {
     if let Some(cfg) = &config {
         if let Some(cmd_str) = &cfg.servidor {
             println!("\x1b[1;36m🚀 Iniciando servidor: {}\x1b[0m", cmd_str);
+            let _ = std::fs::write("testes/servidor.log", "");
+            let log_file = std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open("testes/servidor.log")
+                .expect("Falha ao abrir testes/servidor.log");
+            let log_file_err = log_file
+                .try_clone()
+                .expect("Falha ao clonar descritor de testes/servidor.log");
+
             if let Ok(child) = std::process::Command::new("sh")
                 .arg("-c")
-                .arg(cmd_str)
+                .arg(format!("exec {}", cmd_str))
                 .current_dir(testes_dir)
+                .stdout(std::process::Stdio::from(log_file))
+                .stderr(std::process::Stdio::from(log_file_err))
                 .spawn()
             {
                 _servidor_guard = Some(KillOnDrop(child));
-                
+
                 if let Some(url) = &cfg.url_base {
-                    let host_port = url.trim_start_matches("http://")
+                    let host_port = url
+                        .trim_start_matches("http://")
                         .trim_start_matches("https://")
                         .split('/')
                         .next()
                         .unwrap_or(url);
 
                     let mut ready = false;
-                    for _ in 0..50 { // wait up to 5 seconds
+                    for _ in 0..50 {
+                        // wait up to 5 seconds
                         if std::net::TcpStream::connect(host_port).is_ok() {
                             ready = true;
                             break;
@@ -57,7 +80,10 @@ fn main() {
                         std::thread::sleep(std::time::Duration::from_millis(100));
                     }
                     if !ready {
-                        println!("\x1b[1;33m⚠️ Aviso: Servidor não parece estar pronto em {}\x1b[0m", url);
+                        println!(
+                            "\x1b[1;33m⚠️ Aviso: Servidor não parece estar pronto em {}\x1b[0m",
+                            url
+                        );
                     }
                 } else {
                     std::thread::sleep(std::time::Duration::from_millis(1500));
