@@ -1,0 +1,2 @@
+servidor: "npx serve exemplos/"
+url_base: "http://localhost:3000"

@@ -14,6 +14,37 @@ fn main() {
         std::process::exit(1);
     }
 
+    let mut config: Option<modelos::Configuracao> = None;
+    let config_path = testes_dir.join("caixa-preta.yaml");
+    if config_path.exists() {
+        if let Ok(content) = fs::read_to_string(&config_path) {
+            config = serde_yaml::from_str(&content).ok();
+        }
+    }
+
+    struct KillOnDrop(std::process::Child);
+    impl Drop for KillOnDrop {
+        fn drop(&mut self) {
+            let _ = self.0.kill();
+        }
+    }
+
+    let mut _servidor_guard = None;
+    if let Some(cfg) = &config {
+        if let Some(cmd_str) = &cfg.servidor {
+            println!("\x1b[1;36m🚀 Iniciando servidor: {}\x1b[0m", cmd_str);
+            if let Ok(child) = std::process::Command::new("sh")
+                .arg("-c")
+                .arg(cmd_str)
+                .current_dir(testes_dir)
+                .spawn()
+            {
+                _servidor_guard = Some(KillOnDrop(child));
+                std::thread::sleep(std::time::Duration::from_millis(1500));
+            }
+        }
+    }
+
     let mut total = 0;
     let mut passed = 0;
 
@@ -40,6 +71,7 @@ fn main() {
                     .unwrap()
                     .to_string_lossy()
                     .ends_with("-saídas.yaml")
+                && p.file_name().unwrap() != "caixa-preta.yaml"
         })
         .collect();
 
@@ -157,6 +189,7 @@ fn main() {
                 &mut actual_results,
                 &mut passed,
                 &mut total,
+                &config,
             );
         }
 

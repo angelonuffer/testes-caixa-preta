@@ -1,6 +1,12 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+#[derive(Deserialize, Debug, Clone)]
+pub struct Configuracao {
+    pub servidor: Option<String>,
+    pub url_base: Option<String>,
+}
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct ResultadoComando {
     #[serde(rename = "saída_padrão")]

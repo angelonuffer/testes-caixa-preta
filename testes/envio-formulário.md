@@ -3,7 +3,7 @@
 O primeiro passo do cenário consiste em acessar a página do formulário, preencher os dados do usuário e aguardar a mensagem de sucesso. Isso garante que os dados foram submetidos e salvos corretamente no IndexedDB.
 
 ```yaml
-- navegar para: "testes/formulario.html"
+- navegar para: "formulario.html"
 - enviar formulário:
     nome: "Fulano de Tal"
 - esperar aparecer: "Salvo com sucesso"
@@ -15,7 +15,7 @@ O primeiro passo do cenário consiste em acessar a página do formulário, preen
 Após a inserção, o teste verifica a leitura dos dados. Para isso, navegamos para a página de exibição e aguardamos a conclusão do carregamento para confirmar que os dados do IndexedDB foram renderizados com sucesso na tela.
 
 ```yaml
-- navegar para: "testes/exibicao.html"
+- navegar para: "exibicao.html"
 - esperar sumir: "Carregando"
 ```
 

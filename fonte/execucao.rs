@@ -13,6 +13,7 @@ pub fn executar_cenario(
     actual_results: &mut Vec<ResultadoCenario>,
     passed: &mut usize,
     total: &mut usize,
+    config: &Option<crate::modelos::Configuracao>,
 ) {
     match caso {
         Cenario::Comandos(cenario_comandos) => {
@@ -33,6 +34,7 @@ pub fn executar_cenario(
                 actual_results,
                 passed,
                 total,
+                config,
             );
         }
     }

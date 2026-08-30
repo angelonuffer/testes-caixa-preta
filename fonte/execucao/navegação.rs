@@ -13,6 +13,7 @@ pub fn testar_navegador(
     actual_results: &mut Vec<ResultadoCenario>,
     passed: &mut usize,
     total: &mut usize,
+    config: &Option<crate::modelos::Configuracao>,
 ) {
     *total += 1;
     print!("  \x1b[1m{}\x1b[0m ... ", cenario_navegador.cenario);
@@ -73,8 +74,20 @@ pub fn testar_navegador(
 
     for passo in &cenario_navegador.navegação {
         let screenshot_path = telas_dir.join(&passo.arquivo);
-        let path = cur_dir.join(&passo.endereço);
-        let url = format!("file://{}", path.display());
+
+        let url = if let Some(cfg) = config {
+            if let Some(base) = &cfg.url_base {
+                let trimmed_base = base.trim_end_matches('/');
+                let trimmed_path = passo.endereço.trim_start_matches('/');
+                format!("{}/{}", trimmed_base, trimmed_path)
+            } else {
+                let path = cur_dir.join(&passo.endereço);
+                format!("file://{}", path.display())
+            }
+        } else {
+            let path = cur_dir.join(&passo.endereço);
+            format!("file://{}", path.display())
+        };
 
         if let Err(e) = tab.navigate_to(&url) {
             println!("\x1b[1;31m❌ FALHOU\x1b[0m (erro ao navegar: {})", e);
