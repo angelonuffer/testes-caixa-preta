@@ -1,4 +1,5 @@
 mod execucao;
+mod markdown;
 mod modelos;
 
 use execucao::executar_cenario;
@@ -32,7 +33,8 @@ fn main() {
         .map(|e| e.path())
         .filter(|p| {
             p.is_file()
-                && p.extension().and_then(|s| s.to_str()) == Some("yaml")
+                && (p.extension().and_then(|s| s.to_str()) == Some("yaml")
+                    || p.extension().and_then(|s| s.to_str()) == Some("md"))
                 && !p
                     .file_name()
                     .unwrap()
@@ -56,15 +58,29 @@ fn main() {
             }
         };
 
-        let casos: Vec<Cenario> = match serde_yaml::from_str(&content) {
-            Ok(c) => c,
-            Err(err) => {
-                eprintln!(
-                    "\x1b[1;31m❌ Erro ao fazer parse do arquivo {}: {}\x1b[0m",
-                    path.display(),
-                    err
-                );
-                continue;
+        let casos: Vec<Cenario> = if path.extension().and_then(|s| s.to_str()) == Some("md") {
+            match markdown::parse_markdown(&content) {
+                Ok(c) => c,
+                Err(err) => {
+                    eprintln!(
+                        "\x1b[1;31m❌ Erro ao fazer parse do arquivo {}: {}\x1b[0m",
+                        path.display(),
+                        err
+                    );
+                    continue;
+                }
+            }
+        } else {
+            match serde_yaml::from_str(&content) {
+                Ok(c) => c,
+                Err(err) => {
+                    eprintln!(
+                        "\x1b[1;31m❌ Erro ao fazer parse do arquivo {}: {}\x1b[0m",
+                        path.display(),
+                        err
+                    );
+                    continue;
+                }
             }
         };
 
