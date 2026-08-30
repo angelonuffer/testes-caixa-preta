@@ -6,7 +6,7 @@ pub fn parse_markdown(content: &str) -> Result<Vec<Cenario>, String> {
     let mut steps_navegador = Vec::new();
     let mut in_yaml = false;
     let mut current_yaml = String::new();
-    
+
     for line in content.lines() {
         if line.starts_with("# ") {
             title = line[2..].trim().to_string();
@@ -15,7 +15,8 @@ pub fn parse_markdown(content: &str) -> Result<Vec<Cenario>, String> {
             current_yaml.clear();
         } else if line.starts_with("```") && in_yaml {
             in_yaml = false;
-            let parsed: Result<Vec<HashMap<String, serde_yaml::Value>>, _> = serde_yaml::from_str(&current_yaml);
+            let parsed: Result<Vec<HashMap<String, serde_yaml::Value>>, _> =
+                serde_yaml::from_str(&current_yaml);
             if let Ok(parsed) = parsed {
                 let mut passo = PassoNavegacao {
                     endereço: String::new(),
@@ -23,9 +24,10 @@ pub fn parse_markdown(content: &str) -> Result<Vec<Cenario>, String> {
                     formulário: None,
                     esperar_exibição: None,
                     esperar_ocultação: None,
+                    hash_esperado: None,
                 };
                 let mut is_navegador = false;
-                
+
                 for map in parsed {
                     if let Some(val) = map.get("navegar para") {
                         passo.endereço = val.as_str().unwrap_or("").to_string();
@@ -50,7 +52,10 @@ pub fn parse_markdown(content: &str) -> Result<Vec<Cenario>, String> {
                     steps_navegador.push(passo);
                 }
             } else {
-                return Err(format!("Erro ao ler YAML no markdown: {}", parsed.err().unwrap()));
+                return Err(format!(
+                    "Erro ao ler YAML no markdown: {}",
+                    parsed.err().unwrap()
+                ));
             }
         } else if in_yaml {
             current_yaml.push_str(line);
@@ -67,9 +72,17 @@ pub fn parse_markdown(content: &str) -> Result<Vec<Cenario>, String> {
                     }
                 }
             }
+        } else if line.trim().starts_with("<!--") && line.trim().ends_with("-->") {
+            let trimmed = line.trim();
+            let hash_str = trimmed[4..trimmed.len() - 3].trim().to_string();
+            if let Some(last_step) = steps_navegador.last_mut() {
+                if !last_step.arquivo.is_empty() {
+                    last_step.hash_esperado = Some(hash_str);
+                }
+            }
         }
     }
-    
+
     if !steps_navegador.is_empty() {
         Ok(vec![Cenario::Navegador(CenarioNavegador {
             cenario: title,

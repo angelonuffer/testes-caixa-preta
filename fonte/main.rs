@@ -95,7 +95,32 @@ fn main() {
         let has_saidas = saidas_arquivo.exists();
         let mut expected_results: Option<Vec<ResultadoCenario>> = None;
 
-        if has_saidas {
+        let is_md = path.extension().and_then(|s| s.to_str()) == Some("md");
+
+        if is_md {
+            let mut expected_md = Vec::new();
+            for caso in &casos {
+                match caso {
+                    Cenario::Navegador(cn) => {
+                        let mut arquivos = std::collections::BTreeMap::new();
+                        for passo in &cn.navegação {
+                            if let Some(hash) = &passo.hash_esperado {
+                                arquivos.insert(passo.arquivo.clone(), hash.clone());
+                            }
+                        }
+                        if !arquivos.is_empty() {
+                            expected_md.push(ResultadoCenario::Navegador(
+                                modelos::ResultadoNavegador { arquivos },
+                            ));
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            if !expected_md.is_empty() {
+                expected_results = Some(expected_md);
+            }
+        } else if has_saidas {
             let saidas_content = match fs::read_to_string(&saidas_arquivo) {
                 Ok(c) => c,
                 Err(err) => {
@@ -135,7 +160,7 @@ fn main() {
             );
         }
 
-        if !has_saidas {
+        if !is_md && !has_saidas {
             let serialized = serde_yaml::to_string(&actual_results).unwrap();
             if let Err(err) = fs::write(&saidas_arquivo, serialized) {
                 eprintln!(

@@ -216,6 +216,9 @@ pub fn testar_navegador(
         }
     } else {
         println!("\x1b[1;33m📝 GERADO\x1b[0m");
+        for (arq, hash) in &res.arquivos {
+            println!("    {}: {}", arq, hash);
+        }
         *passed += 1;
     }
 }
