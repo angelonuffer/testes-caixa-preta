@@ -20,6 +20,7 @@
           cargoLock = {
             lockFile = ./Cargo.lock;
           };
+          nativeBuildInputs = [ pkgs.rustfmt ];
           CARGO_BUILD_TARGET_DIR = "target";
         };
       in
