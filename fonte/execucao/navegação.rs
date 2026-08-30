@@ -198,8 +198,34 @@ pub fn testar_navegador(
             if let ResultadoCenario::Navegador(ref esperado) = esperados[idx] {
                 if esperado.arquivos != res.arquivos {
                     println!("\x1b[1;31m❌ FALHOU\x1b[0m");
-                    println!("    arquivos esperado: {:?}", esperado.arquivos);
-                    println!("    arquivos obtido:   {:?}", res.arquivos);
+                    let mut diff_keys = std::collections::BTreeSet::new();
+
+                    for (arq, hash_esperado) in &esperado.arquivos {
+                        if res.arquivos.get(arq) != Some(hash_esperado) {
+                            diff_keys.insert(arq.clone());
+                        }
+                    }
+                    for (arq, hash_obtido) in &res.arquivos {
+                        if esperado.arquivos.get(arq) != Some(hash_obtido) {
+                            diff_keys.insert(arq.clone());
+                        }
+                    }
+
+                    for arq in diff_keys {
+                        println!("    tela: {}", arq);
+                        let id_esperado = esperado
+                            .arquivos
+                            .get(&arq)
+                            .cloned()
+                            .unwrap_or_else(|| "Nenhum".to_string());
+                        let id_obtido = res
+                            .arquivos
+                            .get(&arq)
+                            .cloned()
+                            .unwrap_or_else(|| "Nenhum".to_string());
+                        println!("      id esperado: {}", id_esperado);
+                        println!("      id obtido:   {}", id_obtido);
+                    }
                 } else {
                     println!("\x1b[1;32m✅ PASSOU\x1b[0m");
                     *passed += 1;
