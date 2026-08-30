@@ -40,7 +40,28 @@ fn main() {
                 .spawn()
             {
                 _servidor_guard = Some(KillOnDrop(child));
-                std::thread::sleep(std::time::Duration::from_millis(1500));
+                
+                if let Some(url) = &cfg.url_base {
+                    let host_port = url.trim_start_matches("http://")
+                        .trim_start_matches("https://")
+                        .split('/')
+                        .next()
+                        .unwrap_or(url);
+
+                    let mut ready = false;
+                    for _ in 0..50 { // wait up to 5 seconds
+                        if std::net::TcpStream::connect(host_port).is_ok() {
+                            ready = true;
+                            break;
+                        }
+                        std::thread::sleep(std::time::Duration::from_millis(100));
+                    }
+                    if !ready {
+                        println!("\x1b[1;33m⚠️ Aviso: Servidor não parece estar pronto em {}\x1b[0m", url);
+                    }
+                } else {
+                    std::thread::sleep(std::time::Duration::from_millis(1500));
+                }
             }
         }
     }
