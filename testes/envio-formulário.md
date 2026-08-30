@@ -4,7 +4,7 @@ O primeiro passo do cenário consiste em acessar a página do formulário, preen
 
 ```yaml
 - navegar para: "testes/formulario.html"
-- preencher formulário:
+- enviar formulário:
     nome: "Fulano de Tal"
 - esperar aparecer: "Salvo com sucesso"
 ```
