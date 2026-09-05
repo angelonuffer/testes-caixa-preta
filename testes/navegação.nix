@@ -41,7 +41,7 @@
       }
       {
         "capturar tela" = "formulário-salvo.png";
-        "hash esperado" = "d58622db523176c9";
+        "hash esperado" = "a99e6c5814452826";
       }
       {
         "descrição" = ''

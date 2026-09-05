@@ -10,7 +10,7 @@ O primeiro passo do cenário consiste em acessar a página do formulário, preen
 ```
 
 ![Tela de formulário salvo](./telas/formulário-salvo.png)
-<!-- d58622db523176c9 -->
+<!-- a99e6c5814452826 -->
 
 Após a inserção, o teste verifica a leitura dos dados. Para isso, navegamos para a página de exibição e aguardamos a conclusão do carregamento para confirmar que os dados do IndexedDB foram renderizados com sucesso na tela.
 
