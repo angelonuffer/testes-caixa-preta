@@ -38,8 +38,16 @@ pub fn testar_navegador(
 
     let mut telas = BTreeMap::new();
 
+    let chrome_bin = if std::path::Path::new("/usr/bin/chromium-browser").exists() {
+        "chromium-browser"
+    } else if std::path::Path::new("/usr/bin/google-chrome").exists() {
+        "/usr/bin/google-chrome"
+    } else {
+        "chromium-browser"
+    };
+
     let options = headless_chrome::LaunchOptions::default_builder()
-        .path(Some(std::path::PathBuf::from("chromium-browser")))
+        .path(Some(std::path::PathBuf::from(chrome_bin)))
         .port(Some(0))
         .args(vec![
             std::ffi::OsStr::new("--no-sandbox"),
@@ -70,9 +78,35 @@ pub fn testar_navegador(
         }
     };
 
+    fn aplicar_modo(tab: &headless_chrome::Tab, modo: &str) {
+        let value = match modo.to_lowercase().as_str() {
+            "escuro" | "dark" => "dark",
+            "claro" | "light" => "light",
+            _ => "light",
+        };
+        let _ = tab.call_method(
+            headless_chrome::protocol::cdp::Emulation::SetEmulatedMedia {
+                media: None,
+                features: Some(vec![
+                    headless_chrome::protocol::cdp::Emulation::MediaFeature {
+                        name: "prefers-color-scheme".to_string(),
+                        value: value.to_string(),
+                    },
+                ]),
+            },
+        );
+    }
+
+    // O padrão deve ser o modo claro
+    aplicar_modo(&tab, "claro");
+
     let cur_dir = std::env::current_dir().unwrap_or_default();
 
     for passo in &cenario_navegador.navegação {
+        if let Some(m) = &passo.modo {
+            aplicar_modo(&tab, m);
+        }
+
         if let Some(endereço) = &passo.navegar_para {
             let url = if let Some(cfg) = config {
                 if let Some(base) = &cfg.url_base {

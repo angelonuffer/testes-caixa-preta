@@ -61,6 +61,9 @@ pub struct PassoNavegacao {
     #[serde(default, rename = "capturar tela")]
     pub capturar_tela: Option<String>,
 
+    #[serde(default, rename = "modo")]
+    pub modo: Option<String>,
+
     #[serde(default, rename = "hash esperado")]
     pub hash_esperado: Option<String>,
 

@@ -13,7 +13,7 @@
       }
       {
         "capturar tela" = "exemplo.png";
-        "hash esperado" = "5b0203a176fc9e70";
+        "hash esperado" = "2c1aa09c0779fbfc";
       }
     ];
   }
@@ -41,7 +41,7 @@
       }
       {
         "capturar tela" = "formulário-salvo.png";
-        "hash esperado" = "d58622db523176c9";
+        "hash esperado" = "af2631dc12c3dc67";
       }
       {
         "descrição" = ''
@@ -59,7 +59,7 @@
       }
       {
         "capturar tela" = "exibição-dados.png";
-        "hash esperado" = "6df26ce68441e84a";
+        "hash esperado" = "c4b680831d8761cc";
       }
     ];
   }

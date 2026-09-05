@@ -37,6 +37,7 @@ Os testes devem ser criados em arquivos `.yaml` dentro do diretório `./testes/`
 - `navegação`: Lista de passos para testes no navegador. Atualmente, os passos podem conter:
   - `navegar para`: A URL da página para acessar.
   - `capturar tela`: O nome do arquivo PNG a ser salvo em `testes/telas/`.
+  - `modo`: O modo de preferência de esquema de cores do navegador (`claro` ou `escuro`). O padrão é o modo claro (`claro`).
 
 ## Execução Externa
 

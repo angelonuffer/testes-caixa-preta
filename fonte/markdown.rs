@@ -25,6 +25,9 @@ pub fn parse_markdown(content: &str) -> Result<Vec<Cenario>, String> {
                     if let Some(val) = map.get("navegar para") {
                         passo.navegar_para = Some(val.as_str().unwrap_or("").to_string());
                         is_navegador = true;
+                    } else if let Some(val) = map.get("modo") {
+                        passo.modo = Some(val.as_str().unwrap_or("").to_string());
+                        is_navegador = true;
                     } else if let Some(val) = map.get("enviar formulário") {
                         if let Some(mapping) = val.as_mapping() {
                             let mut form = HashMap::new();

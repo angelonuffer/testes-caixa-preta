@@ -1,0 +1,7 @@
+- cenário: "Teste de modo claro e escuro no navegador"
+  navegação:
+    - navegar para: exemplo.html
+    - modo: claro
+    - capturar tela: exemplo-modo-claro.png
+    - modo: escuro
+    - capturar tela: exemplo-modo-escuro.png
