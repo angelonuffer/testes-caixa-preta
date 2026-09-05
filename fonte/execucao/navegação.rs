@@ -99,17 +99,25 @@ pub fn testar_navegador(
 
     for passo in &cenario_navegador.navegação {
         if let Some(endereço) = &passo.navegar_para {
+            let endereço_resolvido = if let Ok(porta) = std::env::var("PORTA") {
+                endereço
+                    .replace("${PORTA}", &porta)
+                    .replace("$PORTA", &porta)
+            } else {
+                endereço.clone()
+            };
+
             let url = if let Some(cfg) = config {
                 if let Some(base) = &cfg.url_base {
                     let trimmed_base = base.trim_end_matches('/');
-                    let trimmed_path = endereço.trim_start_matches('/');
+                    let trimmed_path = endereço_resolvido.trim_start_matches('/');
                     format!("{}/{}", trimmed_base, trimmed_path)
                 } else {
-                    let path = cur_dir.join(endereço);
+                    let path = cur_dir.join(&endereço_resolvido);
                     format!("file://{}", path.display())
                 }
             } else {
-                let path = cur_dir.join(endereço);
+                let path = cur_dir.join(&endereço_resolvido);
                 format!("file://{}", path.display())
             };
 

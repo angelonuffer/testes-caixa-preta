@@ -1,6 +1,7 @@
 mod execucao;
 mod markdown;
 mod modelos;
+mod rede;
 
 use execucao::executar_cenario;
 use modelos::{Cenario, ResultadoCenario};
@@ -27,22 +28,70 @@ fn main() {
         fn drop(&mut self) {
             #[cfg(unix)]
             {
-                let pid = self.0.id().to_string();
+                let pid = self.0.id();
+                let pids = rede::obter_arvore_de_processos(pid);
+
                 let _ = std::process::Command::new("kill")
                     .arg("-TERM")
-                    .arg(&pid)
+                    .arg(format!("-{}", pid))
+                    .stdout(std::process::Stdio::null())
+                    .stderr(std::process::Stdio::null())
                     .status();
-                std::thread::sleep(std::time::Duration::from_millis(500));
+                for p in &pids {
+                    let _ = std::process::Command::new("kill")
+                        .arg("-TERM")
+                        .arg(p.to_string())
+                        .stdout(std::process::Stdio::null())
+                        .stderr(std::process::Stdio::null())
+                        .status();
+                }
+
+                std::thread::sleep(std::time::Duration::from_millis(300));
+
+                let _ = std::process::Command::new("kill")
+                    .arg("-KILL")
+                    .arg(format!("-{}", pid))
+                    .stdout(std::process::Stdio::null())
+                    .stderr(std::process::Stdio::null())
+                    .status();
+                for p in &pids {
+                    let _ = std::process::Command::new("kill")
+                        .arg("-KILL")
+                        .arg(p.to_string())
+                        .stdout(std::process::Stdio::null())
+                        .stderr(std::process::Stdio::null())
+                        .status();
+                }
             }
             let _ = self.0.kill();
         }
     }
 
     let mut _servidor_guard = None;
-    if let Some(cfg) = &config
+    let mut porta_servidor: Option<u16> = None;
+
+    if let Some(cfg) = &mut config
         && let Some(cmd_str) = &cfg.servidor
     {
-        println!("\x1b[1;36m🚀 Iniciando servidor: {}\x1b[0m", cmd_str);
+        let cmd_para_executar = if cmd_str.contains("$PORTA") || cmd_str.contains("${PORTA}") {
+            match rede::alocar_porta_livre() {
+                Ok(p) => {
+                    porta_servidor = Some(p);
+                    rede::substituir_porta(cmd_str, p)
+                }
+                Err(err) => {
+                    eprintln!("\x1b[1;31m❌ Falha ao alocar porta livre: {}\x1b[0m", err);
+                    cmd_str.clone()
+                }
+            }
+        } else {
+            cmd_str.clone()
+        };
+
+        println!(
+            "\x1b[1;36m🚀 Iniciando servidor: {}\x1b[0m",
+            cmd_para_executar
+        );
         let _ = std::fs::write("testes/servidor.log", "");
         let log_file = std::fs::OpenOptions::new()
             .create(true)
@@ -53,19 +102,55 @@ fn main() {
             .try_clone()
             .expect("Falha ao clonar descritor de testes/servidor.log");
 
-        if let Ok(child) = std::process::Command::new("sh")
-            .arg("-c")
-            .arg(format!("exec {}", cmd_str))
+        let mut cmd = std::process::Command::new("sh");
+        cmd.arg("-c")
+            .arg(format!("exec {}", cmd_para_executar))
             .current_dir(testes_dir)
             .stdout(std::process::Stdio::from(log_file))
-            .stderr(std::process::Stdio::from(log_file_err))
-            .spawn()
+            .stderr(std::process::Stdio::from(log_file_err));
+
+        #[cfg(unix)]
         {
+            use std::os::unix::process::CommandExt;
+            cmd.process_group(0);
+        }
+
+        if let Ok(child) = cmd.spawn() {
+            let pid_servidor = child.id();
             _servidor_guard = Some(KillOnDrop(child));
 
             let tempo_limite_segundos = cfg.tempo_espera.unwrap_or(30);
+            let tempo_limite = std::time::Duration::from_secs(tempo_limite_segundos);
+
+            if porta_servidor.is_none() {
+                match rede::aguardar_primeira_porta(pid_servidor, tempo_limite) {
+                    Ok(p) => {
+                        porta_servidor = Some(p);
+                    }
+                    Err(err) => {
+                        eprintln!("\x1b[1;33m⚠️ Aviso na detecção de porta: {}\x1b[0m", err);
+                    }
+                }
+            }
+
+            if let Some(porta) = porta_servidor {
+                println!("\x1b[1;32m🔌 Servidor escutando na porta: {}\x1b[0m", porta);
+                // SAFETY: Executado de forma síncrona na inicialização do runner antes de threads adicionais
+                unsafe {
+                    std::env::set_var("PORTA", porta.to_string());
+                }
+
+                if let Some(base) = &cfg.url_base {
+                    cfg.url_base = Some(rede::substituir_porta(base, porta));
+                }
+            }
 
             if let Some(url) = &cfg.url_base {
+                // SAFETY: Executado de forma síncrona na inicialização do runner antes de threads adicionais
+                unsafe {
+                    std::env::set_var("URL_BASE", url);
+                }
+
                 let host_port = url
                     .trim_start_matches("http://")
                     .trim_start_matches("https://")
