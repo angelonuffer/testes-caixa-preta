@@ -55,12 +55,20 @@ pub enum ModoNavegador {
     Escuro,
 }
 
+#[derive(Deserialize, Debug, Clone, Default, PartialEq, Eq)]
+pub struct Simuladores {
+    #[serde(default, rename = "data atual")]
+    pub data_atual: Option<String>,
+}
+
 #[derive(Deserialize, Debug)]
 pub struct CenarioNavegador {
     #[serde(rename = "cenário")]
     pub cenario: String,
     #[serde(default)]
     pub modo: ModoNavegador,
+    #[serde(default)]
+    pub simuladores: Option<Simuladores>,
     pub navegação: Vec<PassoNavegacao>,
 }
 

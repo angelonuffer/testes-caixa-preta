@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Teste Simuladores Data Atual</title>
+</head>
+<body>
+    <h1>Simuladores - Data Atual</h1>
+    <div id="data-display"></div>
+    <div id="iso-display"></div>
+    <script>
+        document.getElementById('data-display').innerText = "Data: " + new Date().getFullYear();
+        document.getElementById('iso-display').innerText = "ISO: " + new Date().toISOString();
+    </script>
+</body>
+</html>

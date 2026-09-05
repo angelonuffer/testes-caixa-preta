@@ -4,6 +4,7 @@ use std::collections::HashMap;
 pub fn parse_markdown(content: &str) -> Result<Vec<Cenario>, String> {
     let mut title = String::new();
     let mut modo = ModoNavegador::default();
+    let mut simuladores = None;
     let mut steps_navegador = Vec::new();
     let mut in_yaml = false;
     let mut current_yaml = String::new();
@@ -46,6 +47,10 @@ pub fn parse_markdown(content: &str) -> Result<Vec<Cenario>, String> {
                         && let Ok(m) = serde_yaml::from_value(val.clone())
                     {
                         modo = m;
+                    } else if let Some(val) = map.get("simuladores")
+                        && let Ok(s) = serde_yaml::from_value(val.clone())
+                    {
+                        simuladores = Some(s);
                     }
                 }
                 if is_navegador {
@@ -87,6 +92,7 @@ pub fn parse_markdown(content: &str) -> Result<Vec<Cenario>, String> {
         Ok(vec![Cenario::Navegador(CenarioNavegador {
             cenario: title,
             modo,
+            simuladores,
             navegação: steps_navegador,
         })])
     } else {
