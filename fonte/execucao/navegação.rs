@@ -138,22 +138,61 @@ pub fn testar_navegador(
         if let Some(form) = &passo.enviar_formulario {
             for (id, val) in form {
                 let selector = format!("#{}", id);
-                if let Err(e) = tab.evaluate(
-                    &format!(
-                        "let el = document.querySelector('{}'); if (el) {{ el.value = '{}'; el.dispatchEvent(new Event('input')); el.dispatchEvent(new Event('change')); }}",
-                        selector, val
-                    ),
-                    false,
-                ) {
-                    println!("Erro ao injetar valor no input {}: {:?}", id, e);
+                let mut tentativas = 0;
+                let mut sucesso = false;
+                let script = format!(
+                    r#"(() => {{
+                        try {{
+                            let el = document.querySelector('{0}');
+                            if (el) {{
+                                el.focus();
+                                el.value = '{1}';
+                                el.dispatchEvent(new Event('input', {{ bubbles: true }}));
+                                el.dispatchEvent(new Event('change', {{ bubbles: true }}));
+                                return true;
+                            }}
+                        }} catch (e) {{}}
+                        return false;
+                    }})()"#,
+                    selector,
+                    val.replace('\\', "\\\\").replace('\'', "\\'")
+                );
+                while tentativas < 50 {
+                    if let Ok(res) = tab.evaluate(&script, false)
+                        && let Some(val) = res.value
+                        && val.as_bool().unwrap_or(false)
+                    {
+                        sucesso = true;
+                        break;
+                    }
+                    std::thread::sleep(std::time::Duration::from_millis(100));
+                    tentativas += 1;
+                }
+                if !sucesso {
+                    println!("Erro ao injetar valor no input {}", id);
                 }
             }
             std::thread::sleep(std::time::Duration::from_millis(100));
-            if tab.find_element("button[type=\"submit\"]").is_ok() {
-                let _ = tab.evaluate(
-                    "document.querySelector('button[type=\"submit\"]').click()",
-                    false,
-                );
+            let submit_script = r#"(() => {
+                try {
+                    let btn = document.querySelector('button[type="submit"]');
+                    if (btn) {
+                        btn.click();
+                        return true;
+                    }
+                } catch (e) {}
+                return false;
+            })()"#;
+            let mut submit_tentativas = 0;
+            while submit_tentativas < 20 {
+                if let Ok(res) = tab.evaluate(submit_script, false)
+                    && let Some(val) = res.value
+                    && val.as_bool().unwrap_or(false)
+                {
+                    break;
+                }
+                std::thread::sleep(std::time::Duration::from_millis(100));
+                submit_tentativas += 1;
             }
         }
 
