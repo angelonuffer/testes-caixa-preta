@@ -13,6 +13,10 @@
           inherit system;
         };
 
+        chromiumBrowser = pkgs.writeShellScriptBin "chromium-browser" ''
+          exec ${pkgs.chromium}/bin/chromium "$@"
+        '';
+
         testeCaixaPretaPkg = pkgs.rustPlatform.buildRustPackage {
           pname = "testes-caixa-preta";
           version = "0.1.0";
@@ -20,8 +24,16 @@
           cargoLock = {
             lockFile = ./Cargo.lock;
           };
-          nativeBuildInputs = [ pkgs.rustfmt ];
+          nativeBuildInputs = [ pkgs.rustfmt pkgs.makeWrapper ];
           CARGO_BUILD_TARGET_DIR = "target";
+
+          postInstall = ''
+            wrapProgram $out/bin/testes-caixa-preta \
+              --prefix PATH : ${pkgs.lib.makeBinPath [
+                pkgs.chromium
+                chromiumBrowser
+              ]}
+          '';
         };
       in
       {
@@ -39,9 +51,7 @@
             clippy
             rust-analyzer
             chromium
-            (writeShellScriptBin "chromium-browser" ''
-              exec chromium "$@"
-            '')
+            chromiumBrowser
           ];
 
           # Environment variables
