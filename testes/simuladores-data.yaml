@@ -1,0 +1,7 @@
+- cenário: "Simuladores - Data Atual Mockada"
+  simuladores:
+    data atual: "2025-05-20T10:00:00Z"
+  navegação:
+    - navegar para: "simuladores-data.html"
+    - esperar aparecer: "Data: 2025"
+    - esperar aparecer: "ISO: 2025-05-20T10:00:00.000Z"

@@ -1,5 +1,6 @@
 use crate::modelos::{CenarioNavegador, ModoNavegador, ResultadoCenario, ResultadoNavegador};
 use headless_chrome::protocol::cdp::Emulation::{MediaFeature, SetEmulatedMedia};
+use headless_chrome::protocol::cdp::Page::AddScriptToEvaluateOnNewDocument;
 use std::collections::BTreeMap;
 use std::collections::hash_map::DefaultHasher;
 use std::fs;
@@ -51,8 +52,26 @@ pub fn testar_navegador(
         args.push(std::ffi::OsStr::new("--force-dark-mode"));
     }
 
+    let chrome_bin = if std::process::Command::new("chromium-browser")
+        .arg("--version")
+        .output()
+        .is_ok()
+    {
+        std::path::PathBuf::from("chromium-browser")
+    } else if std::process::Command::new("google-chrome")
+        .arg("--version")
+        .output()
+        .is_ok()
+    {
+        std::path::PathBuf::from("google-chrome")
+    } else if std::path::Path::new("/opt/google/chrome/chrome").exists() {
+        std::path::PathBuf::from("/opt/google/chrome/chrome")
+    } else {
+        std::path::PathBuf::from("chromium-browser")
+    };
+
     let options = headless_chrome::LaunchOptions::default_builder()
-        .path(Some(std::path::PathBuf::from("chromium-browser")))
+        .path(Some(chrome_bin))
         .port(Some(0))
         .args(args)
         .build()
@@ -93,6 +112,49 @@ pub fn testar_navegador(
             "\x1b[1;33m⚠️ Aviso ao definir modo de cor (prefers-color-scheme: {}): {}\x1b[0m",
             esquema_cor, e
         );
+    }
+
+    if let Some(simuladores) = &cenario_navegador.simuladores
+        && let Some(data_atual) = &simuladores.data_atual
+    {
+        let mock_script = format!(
+            r#"(() => {{
+                const TargetDate = {0:?};
+                const FixedDate = class extends Date {{
+                    constructor(...args) {{
+                        if (args.length === 0) {{
+                            super(TargetDate);
+                        }} else {{
+                            super(...args);
+                        }}
+                    }}
+                    static now() {{
+                        return new Date(TargetDate).getTime();
+                    }}
+                }};
+                Object.getOwnPropertyNames(Date).forEach((prop) => {{
+                    if (!(prop in FixedDate)) {{
+                        try {{
+                            FixedDate[prop] = Date[prop];
+                        }} catch (e) {{}}
+                    }}
+                }});
+                window.Date = FixedDate;
+            }})();"#,
+            data_atual
+        );
+
+        if let Err(e) = tab.call_method(AddScriptToEvaluateOnNewDocument {
+            source: mock_script,
+            world_name: None,
+            include_command_line_api: None,
+            run_immediately: Some(true),
+        }) {
+            eprintln!(
+                "\x1b[1;33m⚠️ Aviso ao injetar mock de data atual: {}\x1b[0m",
+                e
+            );
+        }
     }
 
     let cur_dir = std::env::current_dir().unwrap_or_default();
