@@ -1260,6 +1260,7 @@ dependencies = [
  "anyhow",
  "headless_chrome",
  "serde",
+ "serde_json",
  "serde_yaml",
 ]
 

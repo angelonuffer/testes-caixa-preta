@@ -19,7 +19,7 @@ pub struct ResultadoComando {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct ResultadoNavegador {
-    pub arquivos: BTreeMap<String, String>,
+    pub telas: BTreeMap<String, String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -51,12 +51,27 @@ pub struct CenarioNavegador {
     pub navegação: Vec<PassoNavegacao>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone, Default)]
 pub struct PassoNavegacao {
-    pub endereço: String,
-    pub arquivo: String,
+    #[serde(default, rename = "navegar para")]
+    pub navegar_para: Option<String>,
+
+    #[serde(default, rename = "capturar tela")]
+    pub capturar_tela: Option<String>,
+
+    #[serde(default, rename = "hash esperado")]
     pub hash_esperado: Option<String>,
-    pub formulário: Option<std::collections::HashMap<String, String>>,
-    pub esperar_exibição: Option<String>,
-    pub esperar_ocultação: Option<String>,
+
+    #[serde(default, rename = "enviar formulário")]
+    pub enviar_formulario: Option<std::collections::HashMap<String, String>>,
+
+    #[serde(default, rename = "esperar aparecer")]
+    pub esperar_aparecer: Option<String>,
+
+    #[serde(default, rename = "esperar sumir")]
+    pub esperar_sumir: Option<String>,
+
+    #[serde(default, rename = "descrição")]
+    #[allow(dead_code)]
+    pub descricao: Option<String>,
 }

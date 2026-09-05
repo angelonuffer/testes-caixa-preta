@@ -36,7 +36,7 @@ pub fn testar_navegador(
         return;
     }
 
-    let mut arquivos = BTreeMap::new();
+    let mut telas = BTreeMap::new();
 
     let options = headless_chrome::LaunchOptions::default_builder()
         .path(Some(std::path::PathBuf::from("chromium-browser")))
@@ -73,39 +73,45 @@ pub fn testar_navegador(
     let cur_dir = std::env::current_dir().unwrap_or_default();
 
     for passo in &cenario_navegador.navegação {
-        let screenshot_path = telas_dir.join(&passo.arquivo);
-
-        let url = if let Some(cfg) = config {
-            if let Some(base) = &cfg.url_base {
-                let trimmed_base = base.trim_end_matches('/');
-                let trimmed_path = passo.endereço.trim_start_matches('/');
-                format!("{}/{}", trimmed_base, trimmed_path)
+        if let Some(endereço) = &passo.navegar_para {
+            let url = if let Some(cfg) = config {
+                if let Some(base) = &cfg.url_base {
+                    let trimmed_base = base.trim_end_matches('/');
+                    let trimmed_path = endereço.trim_start_matches('/');
+                    format!("{}/{}", trimmed_base, trimmed_path)
+                } else {
+                    let path = cur_dir.join(endereço);
+                    format!("file://{}", path.display())
+                }
             } else {
-                let path = cur_dir.join(&passo.endereço);
+                let path = cur_dir.join(endereço);
                 format!("file://{}", path.display())
+            };
+
+            if let Err(e) = tab.navigate_to(&url) {
+                println!("\x1b[1;31m❌ FALHOU\x1b[0m (erro ao navegar: {})", e);
+                return;
             }
-        } else {
-            let path = cur_dir.join(&passo.endereço);
-            format!("file://{}", path.display())
-        };
 
-        if let Err(e) = tab.navigate_to(&url) {
-            println!("\x1b[1;31m❌ FALHOU\x1b[0m (erro ao navegar: {})", e);
-            return;
+            if let Err(e) = tab.wait_until_navigated() {
+                println!(
+                    "\x1b[1;31m❌ FALHOU\x1b[0m (erro aguardando carregamento: {})",
+                    e
+                );
+                return;
+            }
         }
 
-        if let Err(e) = tab.wait_until_navigated() {
-            println!(
-                "\x1b[1;31m❌ FALHOU\x1b[0m (erro aguardando carregamento: {})",
-                e
-            );
-            return;
-        }
-
-        if let Some(form) = &passo.formulário {
+        if let Some(form) = &passo.enviar_formulario {
             for (id, val) in form {
                 let selector = format!("#{}", id);
-                if let Err(e) = tab.evaluate(&format!("let el = document.querySelector('{}'); el.value = '{}'; el.dispatchEvent(new Event('input')); el.dispatchEvent(new Event('change'));", selector, val), false) {
+                if let Err(e) = tab.evaluate(
+                    &format!(
+                        "let el = document.querySelector('{}'); if (el) {{ el.value = '{}'; el.dispatchEvent(new Event('input')); el.dispatchEvent(new Event('change')); }}",
+                        selector, val
+                    ),
+                    false,
+                ) {
                     println!("Erro ao injetar valor no input {}: {:?}", id, e);
                 }
             }
@@ -117,7 +123,7 @@ pub fn testar_navegador(
             }
         }
 
-        if let Some(texto) = &passo.esperar_exibição {
+        if let Some(texto) = &passo.esperar_aparecer {
             let mut tentativas = 0;
             let mut sucesso = false;
             let cond = format!(
@@ -144,7 +150,7 @@ pub fn testar_navegador(
             }
         }
 
-        if let Some(texto) = &passo.esperar_ocultação {
+        if let Some(texto) = &passo.esperar_sumir {
             let mut tentativas = 0;
             let mut sucesso = false;
             let cond = format!(
@@ -171,69 +177,72 @@ pub fn testar_navegador(
             }
         }
 
-        let png_data = match tab.capture_screenshot(
-            headless_chrome::protocol::cdp::Page::CaptureScreenshotFormatOption::Png,
-            None,
-            None,
-            true,
-        ) {
-            Ok(d) => d,
-            Err(e) => {
+        if let Some(tela) = &passo.capturar_tela {
+            let screenshot_path = telas_dir.join(tela);
+            let png_data = match tab.capture_screenshot(
+                headless_chrome::protocol::cdp::Page::CaptureScreenshotFormatOption::Png,
+                None,
+                None,
+                true,
+            ) {
+                Ok(d) => d,
+                Err(e) => {
+                    println!(
+                        "\x1b[1;31m❌ FALHOU\x1b[0m (erro ao tirar screenshot: {})",
+                        e
+                    );
+                    return;
+                }
+            };
+
+            if let Err(e) = fs::write(&screenshot_path, &png_data) {
                 println!(
-                    "\x1b[1;31m❌ FALHOU\x1b[0m (erro ao tirar screenshot: {})",
+                    "\x1b[1;31m❌ FALHOU\x1b[0m (erro ao salvar screenshot: {})",
                     e
                 );
                 return;
             }
-        };
 
-        if let Err(e) = fs::write(&screenshot_path, &png_data) {
-            println!(
-                "\x1b[1;31m❌ FALHOU\x1b[0m (erro ao salvar screenshot: {})",
-                e
-            );
-            return;
+            let mut hasher = DefaultHasher::new();
+            hasher.write(&png_data);
+            let hash_str = format!("{:x}", hasher.finish());
+
+            telas.insert(tela.clone(), hash_str);
         }
-
-        let mut hasher = DefaultHasher::new();
-        hasher.write(&png_data);
-        let hash_str = format!("{:x}", hasher.finish());
-
-        arquivos.insert(passo.arquivo.clone(), hash_str);
     }
 
-    let res = ResultadoNavegador { arquivos };
+    let res = ResultadoNavegador { telas };
 
     actual_results.push(ResultadoCenario::Navegador(res.clone()));
 
     if let Some(esperados) = expected_results {
         if idx < esperados.len() {
             if let ResultadoCenario::Navegador(ref esperado) = esperados[idx] {
-                if esperado.arquivos != res.arquivos {
+                if esperado.telas != res.telas {
                     println!("\x1b[1;31m❌ FALHOU\x1b[0m");
                     let mut diff_keys = std::collections::BTreeSet::new();
 
-                    for (arq, hash_esperado) in &esperado.arquivos {
-                        if res.arquivos.get(arq) != Some(hash_esperado) {
-                            diff_keys.insert(arq.clone());
+                    for (tela, hash_esperado) in &esperado.telas {
+                        if res.telas.get(tela) != Some(hash_esperado) {
+                            diff_keys.insert(tela.clone());
                         }
                     }
-                    for (arq, hash_obtido) in &res.arquivos {
-                        if esperado.arquivos.get(arq) != Some(hash_obtido) {
-                            diff_keys.insert(arq.clone());
+                    for (tela, hash_obtido) in &res.telas {
+                        if esperado.telas.get(tela) != Some(hash_obtido) {
+                            diff_keys.insert(tela.clone());
                         }
                     }
 
-                    for arq in diff_keys {
-                        println!("    tela: {}", arq);
+                    for tela in diff_keys {
+                        println!("    tela: {}", tela);
                         let id_esperado = esperado
-                            .arquivos
-                            .get(&arq)
+                            .telas
+                            .get(&tela)
                             .cloned()
                             .unwrap_or_else(|| "Nenhum".to_string());
                         let id_obtido = res
-                            .arquivos
-                            .get(&arq)
+                            .telas
+                            .get(&tela)
                             .cloned()
                             .unwrap_or_else(|| "Nenhum".to_string());
                         println!("      id esperado: {}", id_esperado);
@@ -255,8 +264,8 @@ pub fn testar_navegador(
         }
     } else {
         println!("\x1b[1;33m📝 GERADO\x1b[0m");
-        for (arq, hash) in &res.arquivos {
-            println!("    {}: {}", arq, hash);
+        for (tela, hash) in &res.telas {
+            println!("    {}: {}", tela, hash);
         }
         *passed += 1;
     }
