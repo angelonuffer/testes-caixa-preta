@@ -63,6 +63,8 @@ fn main() {
         {
             _servidor_guard = Some(KillOnDrop(child));
 
+            let tempo_limite_segundos = cfg.tempo_espera.unwrap_or(30);
+
             if let Some(url) = &cfg.url_base {
                 let host_port = url
                     .trim_start_matches("http://")
@@ -71,23 +73,53 @@ fn main() {
                     .next()
                     .unwrap_or(url);
 
+                let addr_str = if host_port.contains(':') {
+                    host_port.to_string()
+                } else if url.starts_with("https://") {
+                    format!("{}:443", host_port)
+                } else {
+                    format!("{}:80", host_port)
+                };
+
+                let total_tentativas = tempo_limite_segundos * 10;
                 let mut ready = false;
-                for _ in 0..50 {
-                    // wait up to 5 seconds
-                    if std::net::TcpStream::connect(host_port).is_ok() {
+
+                for _ in 0..total_tentativas {
+                    if let Some(guard) = &mut _servidor_guard
+                        && let Ok(Some(status)) = guard.0.try_wait()
+                    {
+                        eprintln!(
+                            "\x1b[1;31m❌ Processo do servidor encerrou prematuramente com status: {}\x1b[0m",
+                            status
+                        );
+                        break;
+                    }
+
+                    if std::net::TcpStream::connect(&addr_str).is_ok() {
                         ready = true;
                         break;
                     }
                     std::thread::sleep(std::time::Duration::from_millis(100));
                 }
+
                 if !ready {
-                    println!(
-                        "\x1b[1;33m⚠️ Aviso: Servidor não parece estar pronto em {}\x1b[0m",
-                        url
+                    eprintln!(
+                        "\x1b[1;33m⚠️ Aviso: Servidor não parece estar pronto em {} após {} segundos.\x1b[0m",
+                        url, tempo_limite_segundos
                     );
+                    if let Ok(log_content) = fs::read_to_string("testes/servidor.log") {
+                        let trimmed = log_content.trim();
+                        if !trimmed.is_empty() {
+                            eprintln!(
+                                "\x1b[1;33mÚltimas linhas de testes/servidor.log:\x1b[0m\n{}",
+                                trimmed
+                            );
+                        }
+                    }
                 }
             } else {
-                std::thread::sleep(std::time::Duration::from_millis(1500));
+                let tempo_ms = cfg.tempo_espera.map(|s| s * 1000).unwrap_or(1500);
+                std::thread::sleep(std::time::Duration::from_millis(tempo_ms));
             }
         }
     }

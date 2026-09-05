@@ -5,6 +5,8 @@ use std::collections::BTreeMap;
 pub struct Configuracao {
     pub servidor: Option<String>,
     pub url_base: Option<String>,
+    #[serde(default, alias = "tempo_espera_servidor")]
+    pub tempo_espera: Option<u64>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
