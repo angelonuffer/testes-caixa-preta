@@ -148,6 +148,7 @@ pub fn testar_navegador(
                     println!("Erro ao injetar valor no input {}: {:?}", id, e);
                 }
             }
+            std::thread::sleep(std::time::Duration::from_millis(100));
             if tab.find_element("button[type=\"submit\"]").is_ok() {
                 let _ = tab.evaluate(
                     "document.querySelector('button[type=\"submit\"]').click()",
