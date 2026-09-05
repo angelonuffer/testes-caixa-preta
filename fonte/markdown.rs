@@ -1,8 +1,9 @@
-use crate::modelos::{Cenario, CenarioNavegador, PassoNavegacao};
+use crate::modelos::{Cenario, CenarioNavegador, ModoNavegador, PassoNavegacao};
 use std::collections::HashMap;
 
 pub fn parse_markdown(content: &str) -> Result<Vec<Cenario>, String> {
     let mut title = String::new();
+    let mut modo = ModoNavegador::default();
     let mut steps_navegador = Vec::new();
     let mut in_yaml = false;
     let mut current_yaml = String::new();
@@ -39,6 +40,10 @@ pub fn parse_markdown(content: &str) -> Result<Vec<Cenario>, String> {
                         passo.esperar_aparecer = Some(val.as_str().unwrap_or("").to_string());
                     } else if let Some(val) = map.get("esperar sumir") {
                         passo.esperar_sumir = Some(val.as_str().unwrap_or("").to_string());
+                    } else if let Some(val) = map.get("modo")
+                        && let Ok(m) = serde_yaml::from_value(val.clone())
+                    {
+                        modo = m;
                     }
                 }
                 if is_navegador {
@@ -79,6 +84,7 @@ pub fn parse_markdown(content: &str) -> Result<Vec<Cenario>, String> {
     if !steps_navegador.is_empty() {
         Ok(vec![Cenario::Navegador(CenarioNavegador {
             cenario: title,
+            modo,
             navegação: steps_navegador,
         })])
     } else {

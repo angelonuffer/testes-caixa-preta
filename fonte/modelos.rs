@@ -46,10 +46,21 @@ pub struct CenarioComandos {
     pub entrada: Option<String>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum ModoNavegador {
+    #[default]
+    #[serde(rename = "claro")]
+    Claro,
+    #[serde(rename = "escuro")]
+    Escuro,
+}
+
 #[derive(Deserialize, Debug)]
 pub struct CenarioNavegador {
     #[serde(rename = "cenário")]
     pub cenario: String,
+    #[serde(default)]
+    pub modo: ModoNavegador,
     pub navegação: Vec<PassoNavegacao>,
 }
 

@@ -1,4 +1,5 @@
-use crate::modelos::{CenarioNavegador, ResultadoCenario, ResultadoNavegador};
+use crate::modelos::{CenarioNavegador, ModoNavegador, ResultadoCenario, ResultadoNavegador};
+use headless_chrome::protocol::cdp::Emulation::{MediaFeature, SetEmulatedMedia};
 use std::collections::BTreeMap;
 use std::collections::hash_map::DefaultHasher;
 use std::fs;
@@ -38,16 +39,22 @@ pub fn testar_navegador(
 
     let mut telas = BTreeMap::new();
 
+    let mut args = vec![
+        std::ffi::OsStr::new("--no-sandbox"),
+        std::ffi::OsStr::new("--disable-gpu"),
+        std::ffi::OsStr::new("--allow-file-access-from-files"),
+        std::ffi::OsStr::new("--disable-web-security"),
+        std::ffi::OsStr::new("--user-data-dir=./testes/chrome-profile"),
+    ];
+
+    if cenario_navegador.modo == ModoNavegador::Escuro {
+        args.push(std::ffi::OsStr::new("--force-dark-mode"));
+    }
+
     let options = headless_chrome::LaunchOptions::default_builder()
         .path(Some(std::path::PathBuf::from("chromium-browser")))
         .port(Some(0))
-        .args(vec![
-            std::ffi::OsStr::new("--no-sandbox"),
-            std::ffi::OsStr::new("--disable-gpu"),
-            std::ffi::OsStr::new("--allow-file-access-from-files"),
-            std::ffi::OsStr::new("--disable-web-security"),
-            std::ffi::OsStr::new("--user-data-dir=./testes/chrome-profile"),
-        ])
+        .args(args)
         .build()
         .unwrap_or_default();
 
@@ -69,6 +76,24 @@ pub fn testar_navegador(
             return;
         }
     };
+
+    let esquema_cor = match cenario_navegador.modo {
+        ModoNavegador::Claro => "light",
+        ModoNavegador::Escuro => "dark",
+    };
+    let media_feature = MediaFeature {
+        name: "prefers-color-scheme".to_string(),
+        value: esquema_cor.to_string(),
+    };
+    if let Err(e) = tab.call_method(SetEmulatedMedia {
+        media: None,
+        features: Some(vec![media_feature]),
+    }) {
+        eprintln!(
+            "\x1b[1;33m⚠️ Aviso ao definir modo de cor (prefers-color-scheme: {}): {}\x1b[0m",
+            esquema_cor, e
+        );
+    }
 
     let cur_dir = std::env::current_dir().unwrap_or_default();
 

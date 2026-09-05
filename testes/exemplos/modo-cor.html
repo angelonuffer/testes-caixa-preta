@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Teste de Modo Claro e Escuro</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background-color: #ffffff;
+            color: #111111;
+        }
+        .indicador {
+            display: inline-block;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            background-color: #e0e0e0;
+            color: #000000;
+        }
+        .texto-escuro { display: none; }
+        .texto-claro { display: block; }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #121212;
+                color: #f5f5f5;
+            }
+            .indicador {
+                background-color: #333333;
+                color: #ffffff;
+            }
+            .texto-escuro { display: block; }
+            .texto-claro { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Teste de Esquema de Cores</h1>
+    <div class="indicador">
+        <span class="texto-claro">Modo Claro Ativo</span>
+        <span class="texto-escuro">Modo Escuro Ativo</span>
+    </div>
+</body>
+</html>

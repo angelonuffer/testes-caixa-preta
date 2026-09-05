@@ -34,6 +34,7 @@ Os testes devem ser criados em arquivos `.yaml` dentro do diretório `./testes/`
 - `cenário`: Nome descritivo do cenário de teste, que será exibido no relatório.
 - `comandos`: Lista de comandos a serem rodados no shell (a saída padrão de um é passada como entrada padrão para o próximo).
 - `entrada` (opcional): O conteúdo a ser enviado para a entrada padrão (stdin) do primeiro comando.
+- `modo` (opcional): Define o esquema de cores do navegador para cenários de navegação. Aceita `"claro"` ou `"escuro"`, sendo `"claro"` o padrão.
 - `navegação`: Lista de passos para testes no navegador. Atualmente, os passos podem conter:
   - `navegar para`: A URL da página para acessar.
   - `capturar tela`: O nome do arquivo PNG a ser salvo em `testes/telas/`.
