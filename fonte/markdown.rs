@@ -40,6 +40,8 @@ pub fn parse_markdown(content: &str) -> Result<Vec<Cenario>, String> {
                         passo.esperar_aparecer = Some(val.as_str().unwrap_or("").to_string());
                     } else if let Some(val) = map.get("esperar sumir") {
                         passo.esperar_sumir = Some(val.as_str().unwrap_or("").to_string());
+                    } else if let Some(val) = map.get("clicar em").or_else(|| map.get("clicar")) {
+                        passo.clicar_em = Some(val.as_str().unwrap_or("").to_string());
                     } else if let Some(val) = map.get("modo")
                         && let Ok(m) = serde_yaml::from_value(val.clone())
                     {

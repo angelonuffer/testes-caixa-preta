@@ -84,6 +84,9 @@ pub struct PassoNavegacao {
     #[serde(default, rename = "esperar sumir")]
     pub esperar_sumir: Option<String>,
 
+    #[serde(default, alias = "clicar", rename = "clicar em")]
+    pub clicar_em: Option<String>,
+
     #[serde(default, rename = "descrição")]
     #[allow(dead_code)]
     pub descricao: Option<String>,

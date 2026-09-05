@@ -210,6 +210,44 @@ pub fn testar_navegador(
             }
         }
 
+        if let Some(alvo) = &passo.clicar_em {
+            let mut tentativas = 0;
+            let mut sucesso = false;
+            let script = format!(
+                r#"(() => {{
+                    try {{
+                        let el = document.querySelector('{0}')
+                            || document.querySelector('[title="{0}"]')
+                            || Array.from(document.querySelectorAll('a, button, [role="button"], input[type="button"], input[type="submit"]')).find(e => (e.innerText && e.innerText.trim() === '{0}') || e.getAttribute('title') === '{0}');
+                        if (el) {{
+                            el.click();
+                            return true;
+                        }}
+                    }} catch (e) {{}}
+                    return false;
+                }})()"#,
+                alvo.replace('\'', "\\'")
+            );
+            while tentativas < 50 {
+                if let Ok(res) = tab.evaluate(&script, false)
+                    && let Some(val) = res.value
+                    && val.as_bool().unwrap_or(false)
+                {
+                    sucesso = true;
+                    break;
+                }
+                std::thread::sleep(std::time::Duration::from_millis(100));
+                tentativas += 1;
+            }
+            if !sucesso {
+                println!(
+                    "\x1b[1;31m❌ FALHOU\x1b[0m (tempo esgotado ao tentar clicar em '{}')",
+                    alvo
+                );
+                return;
+            }
+        }
+
         if let Some(tela) = &passo.capturar_tela {
             let screenshot_path = telas_dir.join(tela);
             let png_data = match tab.capture_screenshot(
