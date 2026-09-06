@@ -1,4 +1,4 @@
-{ pkgs ? import <nixpkgs> {} }:
+{ pkgs ? import ./nixpkgs.nix {} }:
 
 pkgs.mkShell {
   inputsFrom = [ (import ./default.nix { inherit pkgs; }) ];

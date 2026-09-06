@@ -102,6 +102,7 @@ let
     # ref = "main"; # opcional, padrão é a branch padrão
     # rev = "...";  # opcional, para fixar um commit específico
   };
+  # pkgs é opcional: se omitido ({}), utiliza a versão fixada de nixpkgs do repositório
   testesCaixaPreta = import "${testesCaixaPretaRepo}/fonte/default.nix" { inherit pkgs; };
 in
 testesCaixaPreta

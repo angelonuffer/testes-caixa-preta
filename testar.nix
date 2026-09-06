@@ -1,5 +1,5 @@
 let
-  pkgs = import <nixpkgs> {};
+  pkgs = import ./fonte/nixpkgs.nix {};
   testesCaixaPreta = import ./fonte/default.nix { inherit pkgs; };
 in
 pkgs.writeShellScriptBin "testar" ''
