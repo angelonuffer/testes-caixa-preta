@@ -2,9 +2,11 @@ name: Testar
 
 on:
   push:
-    branches: [ "main" ]
+    branches: 
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches: 
+      - main
 
 env:
   CARGO_TERM_COLOR: always
@@ -19,17 +21,23 @@ jobs:
     - name: Instalar Nix
       uses: DeterminateSystems/nix-installer-action@main
 
-    - name: Rust Cache
-      uses: Swatinem/rust-cache@v2
-      with:
-        shared-key: "nix-rust"
+    - name: Magic Nix Cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
 
-    - name: Executar testes (Build e Run)
-      run: nix develop -c cargo run --verbose
+    - name: Executar testes
+      run: nix run -f testar.nix -L
 
     - name: Upload servidor.log
       uses: actions/upload-artifact@v4
-      if: always()
+      if: failure()
       with:
         name: servidor-log
         path: testes/servidor.log
+
+    - name: Upload capturas de tela em caso de falha
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: telas
+        path: testes/telas/
+        retention-days: 7
