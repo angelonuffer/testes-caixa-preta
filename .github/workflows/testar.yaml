@@ -19,7 +19,6 @@ jobs:
       - name: Executar testes no Dev Container
         uses: devcontainers/ci@v0.3
         with:
-          runCmd: nix develop -c cargo run --verbose
           runCmd: if [ "$(stat -c '%u' /nix)" != "$(id -u)" ]; then sudo chown -R $(id -u):$(id -g) /nix; fi && nix develop -c cargo run --verbose
 
       - name: Upload servidor.log
