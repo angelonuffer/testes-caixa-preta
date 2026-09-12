@@ -39,38 +39,18 @@ Os testes devem ser criados em arquivos `.yaml` dentro do diretório `./testes/`
   - `navegar para`: A URL da página para acessar.
   - `capturar tela`: O nome do arquivo PNG a ser salvo em `testes/telas/`.
 
-## Execução Externa
-
-Para rodar os testes externamente, sem precisar clonar o repositório, você pode utilizar o seguinte comando:
-
-```sh
-nix run github:angelonuffer/testes-caixa-preta
-```
-
 ## Pré-requisitos
 
-Para desenvolver ou executar este projeto localmente a partir do código-fonte, você precisará ter instalado:
-- [Nix](https://nixos.org/download.html) com suporte a *Flakes* ativado (fortemente recomendado) ou
-- [Rust e Cargo](https://rustup.rs/).
+Para desenvolver ou executar este projeto:
+- **Dev Container** (recomendado): basta abrir o repositório no VS Code / editor compatível com Dev Containers (requer Docker).
+- **Localmente**: [Rust e Cargo](https://rustup.rs/) (edição 2024 / Rust 1.88+), Chromium (ou `chromium-browser`) e Node.js/npm.
 
 ## Como Executar
 
-### Utilizando Nix (Recomendado)
-
-O projeto contém um `flake.nix` já configurado com um ambiente padronizado. Para acessá-lo, use:
-
-```bash
-nix develop
-```
-
-Este comando ativará um shell com todas as dependências (`cargo`, `rustc`, `clippy`, etc) instaladas e configuradas.
-
-### Compilando e Rodando
-
-Com o ambiente pronto, você pode rodar os testes executando:
+Com o ambiente pronto (no Dev Container ou localmente), você pode rodar os testes executando:
 
 ```bash
 cargo run
 ```
 
-O programa exibirá no terminal o progresso de cada arquivo `.yaml` sendo testado e, no fim, um relatório de quantos testes passaram.
+O programa exibirá no terminal o progresso de cada arquivo de teste sendo executado e, no fim, um relatório de quantos testes passaram.

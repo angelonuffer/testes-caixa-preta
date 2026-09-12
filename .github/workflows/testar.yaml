@@ -2,9 +2,11 @@ name: Testar
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
   pull_request:
-    branches: ["main"]
+    branches:
+      - main
 
 env:
   CARGO_TERM_COLOR: always
@@ -19,7 +21,7 @@ jobs:
       - name: Executar testes no Dev Container
         uses: devcontainers/ci@v0.3
         with:
-          runCmd: if [ "$(stat -c '%u' /nix)" != "$(id -u)" ]; then sudo chown -R $(id -u):$(id -g) /nix; fi && nix develop -c cargo run --verbose
+          runCmd: cargo run --verbose
 
       - name: Upload servidor.log
         uses: actions/upload-artifact@v4
@@ -27,7 +29,7 @@ jobs:
         with:
           name: servidor-log
           path: testes/servidor.log
-  
+
       - name: Upload capturas de tela em caso de falha
         uses: actions/upload-artifact@v4
         if: failure()

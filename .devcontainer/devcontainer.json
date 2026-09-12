@@ -22,13 +22,6 @@
           "bash": {
             "path": "/bin/bash",
             "icon": "terminal-bash"
-          },
-          "nix-develop": {
-            "path": "/home/vscode/.nix-profile/bin/nix",
-            "args": [
-              "develop"
-            ],
-            "icon": "package"
           }
         },
         "terminal.integrated.defaultProfile.linux": "bash"
