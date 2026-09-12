@@ -18,6 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Build no Dev Container
+        uses: devcontainers/ci@v0.3
+        with:
+          runCmd: cargo build --verbose
+
       - name: Executar testes no Dev Container
         uses: devcontainers/ci@v0.3
         with:
