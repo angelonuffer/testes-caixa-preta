@@ -1,9 +1,7 @@
 {
-    "terminal.integrated.profiles.linux": {
-        "nix-develop": {
-            "path": "host-spawn",
-            "args": ["toolbox", "run", "-c", "ubuntu-toolbox-26.04", "nix", "develop"]
-        }
+    "editor.formatOnSave": true,
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer"
     },
-    "terminal.integrated.defaultProfile.linux": "nix-develop"
+    "rust-analyzer.check.command": "clippy"
 }

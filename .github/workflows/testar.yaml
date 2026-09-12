@@ -2,9 +2,9 @@ name: Testar
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -14,22 +14,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Instalar Nix
-      uses: DeterminateSystems/nix-installer-action@main
+      - uses: actions/checkout@v4
 
-    - name: Rust Cache
-      uses: Swatinem/rust-cache@v2
-      with:
-        shared-key: "nix-rust"
+      - name: Executar testes no Dev Container
+        uses: devcontainers/ci@v0.3
+        with:
+          runCmd: nix develop -c cargo run --verbose
 
-    - name: Executar testes (Build e Run)
-      run: nix develop -c cargo run --verbose
-
-    - name: Upload servidor.log
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: servidor-log
-        path: testes/servidor.log
+      - name: Upload servidor.log
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: servidor-log
+          path: testes/servidor.log
+  
+      - name: Upload capturas de tela em caso de falha
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: telas
+          path: testes/telas/

@@ -15,7 +15,7 @@
       }
       {
         "capturar tela" = "modo-cor-claro-padrao.png";
-        "hash esperado" = "33d1a15ea34fd765";
+        "hash esperado" = "8a62df5a0da1f493";
       }
     ];
   }
@@ -36,7 +36,7 @@
       }
       {
         "capturar tela" = "modo-cor-claro-explicito.png";
-        "hash esperado" = "33d1a15ea34fd765";
+        "hash esperado" = "8a62df5a0da1f493";
       }
     ];
   }
@@ -57,7 +57,7 @@
       }
       {
         "capturar tela" = "modo-cor-escuro.png";
-        "hash esperado" = "56758173e136bf65";
+        "hash esperado" = "e186263a1f292a4d";
       }
     ];
   }
