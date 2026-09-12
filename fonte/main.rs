@@ -31,12 +31,6 @@ fn main() {
                 let pid = self.0.id();
                 let pids = rede::obter_arvore_de_processos(pid);
 
-                let _ = std::process::Command::new("kill")
-                    .arg("-TERM")
-                    .arg(format!("-{}", pid))
-                    .stdout(std::process::Stdio::null())
-                    .stderr(std::process::Stdio::null())
-                    .status();
                 for p in &pids {
                     let _ = std::process::Command::new("kill")
                         .arg("-TERM")
@@ -48,12 +42,6 @@ fn main() {
 
                 std::thread::sleep(std::time::Duration::from_millis(300));
 
-                let _ = std::process::Command::new("kill")
-                    .arg("-KILL")
-                    .arg(format!("-{}", pid))
-                    .stdout(std::process::Stdio::null())
-                    .stderr(std::process::Stdio::null())
-                    .status();
                 for p in &pids {
                     let _ = std::process::Command::new("kill")
                         .arg("-KILL")
