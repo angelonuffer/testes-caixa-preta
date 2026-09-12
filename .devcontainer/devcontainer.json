@@ -35,5 +35,6 @@
       }
     }
   },
+  "postStartCommand": "if [ \"$(stat -c '%u' /nix)\" != \"$(id -u)\" ]; then sudo chown -R $(id -u):$(id -g) /nix; fi",
   "remoteUser": "vscode"
 }
