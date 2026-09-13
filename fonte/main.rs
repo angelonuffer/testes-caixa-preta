@@ -8,6 +8,14 @@ use modelos::{Cenario, ResultadoCenario};
 use std::fs;
 use std::path::Path;
 
+fn formatar_resumo_erros(quantidade: usize) -> String {
+    if quantidade == 1 {
+        "❌ 1 erro".to_string()
+    } else {
+        format!("❌ {} erros", quantidade)
+    }
+}
+
 fn main() {
     let testes_dir = Path::new("./testes");
     if !testes_dir.exists() {
@@ -199,6 +207,7 @@ fn main() {
 
     let mut total = 0;
     let mut passed = 0;
+    let mut parse_errors = 0usize;
 
     let entries = match fs::read_dir(testes_dir) {
         Ok(e) => e,
@@ -250,6 +259,7 @@ fn main() {
                         path.display(),
                         err
                     );
+                    parse_errors += 1;
                     continue;
                 }
             };
@@ -260,6 +270,7 @@ fn main() {
                     path.display(),
                     String::from_utf8_lossy(&output.stderr)
                 );
+                parse_errors += 1;
                 continue;
             }
 
@@ -271,6 +282,7 @@ fn main() {
                         path.display(),
                         err
                     );
+                    parse_errors += 1;
                     continue;
                 }
             }
@@ -283,6 +295,7 @@ fn main() {
                         path.display(),
                         err
                     );
+                    parse_errors += 1;
                     continue;
                 }
             };
@@ -296,6 +309,7 @@ fn main() {
                             path.display(),
                             err
                         );
+                        parse_errors += 1;
                         continue;
                     }
                 }
@@ -308,6 +322,7 @@ fn main() {
                             path.display(),
                             err
                         );
+                        parse_errors += 1;
                         continue;
                     }
                 }
@@ -402,6 +417,11 @@ fn main() {
         }
     }
 
+    if parse_errors > 0 {
+        println!("\n{}", formatar_resumo_erros(parse_errors));
+        std::process::exit(1);
+    }
+
     let cor_relatorio = if passed == total {
         "\x1b[1;32m"
     } else {
@@ -415,5 +435,16 @@ fn main() {
 
     if passed < total {
         std::process::exit(1);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::formatar_resumo_erros;
+
+    #[test]
+    fn resumo_de_erros_usa_singular_e_plural() {
+        assert_eq!(formatar_resumo_erros(1), "❌ 1 erro");
+        assert_eq!(formatar_resumo_erros(2), "❌ 2 erros");
     }
 }
