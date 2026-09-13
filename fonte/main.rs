@@ -1,5 +1,4 @@
 mod execucao;
-mod markdown;
 mod modelos;
 mod rede;
 
@@ -225,8 +224,7 @@ fn main() {
         .map(|e| e.path())
         .filter(|p| {
             p.is_file()
-                && (p.extension().and_then(|s| s.to_str()) == Some("yaml")
-                    || p.extension().and_then(|s| s.to_str()) == Some("md"))
+                && p.extension().and_then(|s| s.to_str()) == Some("yaml")
                 && !p
                     .file_name()
                     .unwrap()
@@ -239,9 +237,6 @@ fn main() {
     files.sort();
 
     for path in files {
-        let ext = path.extension().and_then(|s| s.to_str()).unwrap_or("");
-        let is_md = ext == "md";
-
         let content = match fs::read_to_string(&path) {
             Ok(c) => c,
             Err(err) => {
@@ -255,31 +250,16 @@ fn main() {
             }
         };
 
-        let casos: Vec<Cenario> = if is_md {
-            match markdown::parse_markdown(&content) {
-                Ok(c) => c,
-                Err(err) => {
-                    eprintln!(
-                        "\x1b[1;31m❌ Erro ao fazer parse do arquivo {}: {}\x1b[0m",
-                        path.display(),
-                        err
-                    );
-                    parse_errors += 1;
-                    continue;
-                }
-            }
-        } else {
-            match serde_yaml::from_str(&content) {
-                Ok(c) => c,
-                Err(err) => {
-                    eprintln!(
-                        "\x1b[1;31m❌ Erro ao fazer parse do arquivo {}: {}\x1b[0m",
-                        path.display(),
-                        err
-                    );
-                    parse_errors += 1;
-                    continue;
-                }
+        let casos: Vec<Cenario> = match serde_yaml::from_str(&content) {
+            Ok(c) => c,
+            Err(err) => {
+                eprintln!(
+                    "\x1b[1;31m❌ Erro ao fazer parse do arquivo {}: {}\x1b[0m",
+                    path.display(),
+                    err
+                );
+                parse_errors += 1;
+                continue;
             }
         };
 
@@ -338,7 +318,7 @@ fn main() {
             );
         }
 
-        if !is_md && !tem_navegacao && !has_saidas {
+        if !tem_navegacao && !has_saidas {
             let serialized = serde_yaml::to_string(&actual_results).unwrap();
             if let Err(err) = fs::write(&saidas_arquivo, serialized) {
                 eprintln!(
