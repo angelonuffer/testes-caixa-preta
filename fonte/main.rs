@@ -141,11 +141,6 @@ fn main() {
             }
 
             if let Some(url) = &cfg.url_base {
-                // SAFETY: Executado de forma síncrona na inicialização do runner antes de threads adicionais
-                unsafe {
-                    std::env::set_var("URL_BASE", url);
-                }
-
                 let host_port = url
                     .trim_start_matches("http://")
                     .trim_start_matches("https://")

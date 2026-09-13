@@ -42,9 +42,6 @@ pub enum Cenario {
 pub struct CenarioComandos {
     #[serde(rename = "cenário")]
     pub cenario: String,
-    #[serde(default, rename = "descrição")]
-    #[allow(dead_code)]
-    pub descricao: Option<String>,
     pub comandos: Vec<String>,
     pub entrada: Option<String>,
 }
@@ -62,9 +59,6 @@ pub enum ModoNavegador {
 pub struct CenarioNavegador {
     #[serde(rename = "cenário")]
     pub cenario: String,
-    #[serde(default, rename = "descrição")]
-    #[allow(dead_code)]
-    pub descricao: Option<String>,
     #[serde(default)]
     pub modo: ModoNavegador,
     pub navegação: Vec<PassoNavegacao>,
@@ -92,8 +86,4 @@ pub struct PassoNavegacao {
 
     #[serde(default, alias = "clicar", rename = "clicar em")]
     pub clicar_em: Option<String>,
-
-    #[serde(default, rename = "descrição")]
-    #[allow(dead_code)]
-    pub descricao: Option<String>,
 }

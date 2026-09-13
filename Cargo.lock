@@ -1257,10 +1257,8 @@ dependencies = [
 name = "testes-caixa-preta"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "headless_chrome",
  "serde",
- "serde_json",
  "serde_yaml",
 ]
 
