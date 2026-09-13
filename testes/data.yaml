@@ -1,0 +1,12 @@
+- cenário: Simulação de data no navegador
+  navegação:
+    - simular data: 2024-05-06T07:08:09.000Z
+    - navegar para: data.html
+    - esperar aparecer: 2024-05-06T07:08:09.000Z
+    - capturar tela: data-simulada.png
+      hash esperado: 21d24c55a9e67b190111b5171c71d4e562553ca9d5ecb5d0b2edbc31cd62a55d
+    - simular data: 2024-05-07T07:08:09.000Z
+    - navegar para: data.html
+    - esperar aparecer: 2024-05-07T07:08:09.000Z
+    - capturar tela: data-simulada-2.png
+      hash esperado: e0ef7931143a28d183644b70e1c9a194aac7515e5f62349ad432128cff9b4b0d
