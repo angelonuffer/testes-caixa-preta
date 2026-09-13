@@ -1,5 +1,4 @@
-use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use serde::Deserialize;
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct Configuracao {
@@ -9,26 +8,14 @@ pub struct Configuracao {
     pub tempo_espera: Option<u64>,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[derive(Deserialize, Debug, PartialEq, Clone)]
 pub struct ResultadoComando {
-    #[serde(rename = "saída_padrão")]
+    #[serde(rename = "saída padrão", alias = "saída_padrão", default)]
     pub saida_padrao: String,
-    #[serde(rename = "erro_padrão")]
+    #[serde(rename = "erro padrão", alias = "erro_padrão", default)]
     pub erro_padrao: String,
-    #[serde(rename = "código_saída")]
+    #[serde(rename = "código saída", alias = "código_saída", default)]
     pub codigo_saida: i32,
-}
-
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub struct ResultadoNavegador {
-    pub telas: BTreeMap<String, String>,
-}
-
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-#[serde(untagged)]
-pub enum ResultadoCenario {
-    Comandos(Vec<ResultadoComando>),
-    Navegador(ResultadoNavegador),
 }
 
 #[derive(Deserialize, Debug)]
@@ -42,11 +29,18 @@ pub enum Cenario {
 pub struct CenarioComandos {
     #[serde(rename = "cenário")]
     pub cenario: String,
-    pub comandos: Vec<String>,
+    pub comandos: Vec<PassoComando>,
     pub entrada: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+pub enum PassoComando {
+    Comando(String),
+    Saida(ResultadoComando),
+}
+
+#[derive(Deserialize, Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum ModoNavegador {
     #[default]
     #[serde(rename = "claro")]

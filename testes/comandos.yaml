@@ -5,4 +5,10 @@
     cenoura
   comandos:
     - grep b
+    - saída padrão: |
+        banana
+        abacate
     - sort
+    - saída padrão: |
+        abacate
+        banana
