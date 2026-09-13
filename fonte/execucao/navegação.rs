@@ -401,5 +401,5 @@ fn hash_png(png_data: &[u8]) -> String {
     use sha2::Digest;
 
     let hash = sha2::Sha256::digest(png_data);
-    hash[..8].iter().map(|byte| format!("{byte:02x}")).collect()
+    hash.iter().map(|byte| format!("{byte:02x}")).collect()
 }

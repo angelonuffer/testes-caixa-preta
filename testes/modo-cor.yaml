@@ -5,7 +5,7 @@
     - navegar para: modo-cor.html
     - esperar aparecer: Modo Claro Ativo
     - capturar tela: modo-cor-claro-padrao.png
-      hash esperado: 2e897a60c6500086
+      hash esperado: 2e897a60c6500086f6b3eef82b174679ac2ef8f8096fd68a4745c91d7ebd57f8
 
 - cenário: Navegação com modo claro explícito
   modo: claro
@@ -15,7 +15,7 @@
     - navegar para: modo-cor.html
     - esperar aparecer: Modo Claro Ativo
     - capturar tela: modo-cor-claro-explicito.png
-      hash esperado: 2e897a60c6500086
+      hash esperado: 2e897a60c6500086f6b3eef82b174679ac2ef8f8096fd68a4745c91d7ebd57f8
 
 - cenário: Navegação com modo escuro
   modo: escuro
@@ -25,4 +25,4 @@
     - navegar para: modo-cor.html
     - esperar aparecer: Modo Escuro Ativo
     - capturar tela: modo-cor-escuro.png
-      hash esperado: 343a2da257db32ef
+      hash esperado: 343a2da257db32ef2c67d28e81d54391b122dce4c4c65730abc6bb72f8f23e77
