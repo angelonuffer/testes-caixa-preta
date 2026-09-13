@@ -86,6 +86,7 @@ pub fn parse_markdown(content: &str) -> Result<Vec<Cenario>, String> {
     if !steps_navegador.is_empty() {
         Ok(vec![Cenario::Navegador(CenarioNavegador {
             cenario: title,
+            descricao: None,
             modo,
             navegação: steps_navegador,
         })])

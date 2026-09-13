@@ -1,0 +1,8 @@
+- cenário: "Acesso ao site exemplo"
+  descrição: |
+    O primeiro passo do cenário consiste em acessar a página de exemplo
+    para confirmar que o site está acessível.
+  navegação:
+    - navegar para: "exemplo.html"
+    - capturar tela: "exemplo.png"
+      hash esperado: "a7d6960ed227bd05"
