@@ -1,9 +1,7 @@
 use crate::modelos::{CenarioNavegador, ModoNavegador};
 use headless_chrome::protocol::cdp::Emulation::{MediaFeature, SetEmulatedMedia};
 use headless_chrome::protocol::cdp::Page::AddScriptToEvaluateOnNewDocument;
-use std::collections::hash_map::DefaultHasher;
 use std::fs;
-use std::hash::Hasher;
 use std::io::Write;
 use std::path::Path;
 
@@ -95,14 +93,14 @@ pub fn testar_navegador(
     let cur_dir = std::env::current_dir().unwrap_or_default();
 
     for passo in &cenario_navegador.navegação {
-        if let Some(data_simulada) = &passo.simular_data {
-            if let Err(erro) = aplicar_mock_data(&tab, data_simulada) {
-                println!(
-                    "\x1b[1;31m❌ FALHOU\x1b[0m (erro ao simular data '{}': {})",
-                    data_simulada, erro
-                );
-                return;
-            }
+        if let Some(data_simulada) = &passo.simular_data
+            && let Err(erro) = aplicar_mock_data(&tab, data_simulada)
+        {
+            println!(
+                "\x1b[1;31m❌ FALHOU\x1b[0m (erro ao simular data '{}': {})",
+                data_simulada, erro
+            );
+            return;
         }
 
         if let Some(endereço) = &passo.navegar_para {
@@ -321,9 +319,7 @@ pub fn testar_navegador(
                 return;
             }
 
-            let mut hasher = DefaultHasher::new();
-            hasher.write(&png_data);
-            let hash_str = format!("{:x}", hasher.finish());
+            let hash_str = hash_png(&png_data);
 
             match &passo.hash_esperado {
                 Some(hash_esperado) if hash_esperado == &hash_str => {}
@@ -399,4 +395,11 @@ fn aplicar_mock_data(
     })?;
     tab.evaluate(&script, false)?;
     Ok(())
+}
+
+fn hash_png(png_data: &[u8]) -> String {
+    use sha2::Digest;
+
+    let hash = sha2::Sha256::digest(png_data);
+    hash[..8].iter().map(|byte| format!("{byte:02x}")).collect()
 }
