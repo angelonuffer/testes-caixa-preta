@@ -5,7 +5,7 @@
         para confirmar que o site está acessível.
     - navegar para: exemplo.html
     - capturar tela: exemplo.png
-      hash esperado: 728edcdc58b688f8
+      hash esperado: 5875204b81885b58
 
 - cenário: Envio de formulário e IndexedDB
   navegação:
@@ -19,7 +19,7 @@
         nome: Fulano de Tal
     - esperar aparecer: Salvo com sucesso
     - capturar tela: formulário-salvo.png
-      hash esperado: 7159c7507214eb03
+      hash esperado: 30116adb8ce2e275
     - descrição: |
         Após a inserção, o teste verifica a leitura dos dados. Para isso,
         navegamos para a página de exibição e aguardamos a conclusão do
@@ -28,4 +28,4 @@
     - navegar para: exibicao.html
     - esperar sumir: Carregando
     - capturar tela: exibição-dados.png
-      hash esperado: 18fd45941eb86257
+      hash esperado: 24feabec0f46442b

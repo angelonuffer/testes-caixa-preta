@@ -4,4 +4,9 @@
     - navegar para: data.html
     - esperar aparecer: 2024-05-06T07:08:09.000Z
     - capturar tela: data-simulada.png
-      hash esperado: 03e5422a32c4cee3
+      hash esperado: 21d24c55a9e67b19
+    - simular data: 2024-05-07T07:08:09.000Z
+    - navegar para: data.html
+    - esperar aparecer: 2024-05-07T07:08:09.000Z
+    - capturar tela: data-simulada-2.png
+      hash esperado: e0ef7931143a28d1
