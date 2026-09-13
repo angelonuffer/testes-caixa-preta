@@ -23,9 +23,9 @@ fn main() {
     }
 
     let mut config: Option<modelos::Configuracao> = None;
-    let config_path = testes_dir.join("caixa-preta.yaml");
+    let config_path = Path::new("./testes-caixa-preta.yaml");
     if config_path.exists()
-        && let Ok(content) = fs::read_to_string(&config_path)
+        && let Ok(content) = fs::read_to_string(config_path)
     {
         config = serde_yaml::from_str(&content).ok();
     }
@@ -230,7 +230,6 @@ fn main() {
                     .unwrap()
                     .to_string_lossy()
                     .ends_with("-saídas.yaml")
-                && p.file_name().unwrap() != "caixa-preta.yaml"
         })
         .collect();
 

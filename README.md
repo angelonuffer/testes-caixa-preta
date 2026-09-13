@@ -4,7 +4,15 @@ Uma ferramenta de linha de comando simples em Rust para execução de testes de 
 
 ## Como funciona
 
-O programa lê iterativamente todos os arquivos `.yaml` presentes no diretório `./testes/` (ignorando os arquivos de snapshot). Ele executa os comandos definidos utilizando o shell (`sh -c`) e captura a saída padrão (stdout), o erro padrão (stderr) e o código de saída (exit code).
+O programa lê a configuração opcional em `./testes-caixa-preta.yaml` e, em seguida, todos os arquivos `.yaml` presentes no diretório `./testes/` (ignorando os arquivos de snapshot). Os arquivos dentro de `./testes/` contêm exclusivamente cenários. O programa executa os comandos definidos utilizando o shell (`sh -c`) e captura a saída padrão (stdout), o erro padrão (stderr) e o código de saída (exit code).
+
+A configuração da raiz pode definir o servidor a ser iniciado, a URL base e o tempo máximo de espera:
+
+```yaml
+servidor: "npx -y serve exemplos/"
+url_base: "http://localhost:$PORTA"
+tempo_espera: 30
+```
 
 Na primeira execução, o programa cria automaticamente um arquivo de snapshot (ex: `arquivo-saídas.yaml`) com os resultados obtidos. Nas execuções subsequentes, o programa compara os resultados atuais com os salvos no snapshot para validar o teste.
 
