@@ -23,9 +23,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
+            .cargo/registry
+            .cargo/git
+            alvo
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
@@ -34,12 +34,12 @@ jobs:
         if: steps.cache-cargo.outputs.cache-hit != 'true'
         uses: devcontainers/ci@v0.3
         with:
-          runCmd: cargo build --verbose
+          runCmd: CARGO_HOME=.cargo cargo build --verbose
 
       - name: Executar testes no Dev Container
         uses: devcontainers/ci@v0.3
         with:
-          runCmd: cargo run --verbose
+          runCmd: CARGO_HOME=.cargo cargo run --verbose
 
       - name: Upload servidor.log
         uses: actions/upload-artifact@v4
