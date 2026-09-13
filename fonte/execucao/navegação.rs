@@ -1,5 +1,6 @@
 use crate::modelos::{CenarioNavegador, ModoNavegador};
 use headless_chrome::protocol::cdp::Emulation::{MediaFeature, SetEmulatedMedia};
+use headless_chrome::protocol::cdp::Page::AddScriptToEvaluateOnNewDocument;
 use std::collections::hash_map::DefaultHasher;
 use std::fs;
 use std::hash::Hasher;
@@ -94,6 +95,16 @@ pub fn testar_navegador(
     let cur_dir = std::env::current_dir().unwrap_or_default();
 
     for passo in &cenario_navegador.navegação {
+        if let Some(data_simulada) = &passo.simular_data {
+            if let Err(erro) = aplicar_mock_data(&tab, data_simulada) {
+                println!(
+                    "\x1b[1;31m❌ FALHOU\x1b[0m (erro ao simular data '{}': {})",
+                    data_simulada, erro
+                );
+                return;
+            }
+        }
+
         if let Some(endereço) = &passo.navegar_para {
             let endereço_resolvido = if let Ok(porta) = std::env::var("PORTA") {
                 endereço
@@ -338,4 +349,54 @@ pub fn testar_navegador(
         println!("\x1b[1;32m✅ PASSOU\x1b[0m");
         *passed += 1;
     }
+}
+
+fn aplicar_mock_data(
+    tab: &headless_chrome::Tab,
+    data_simulada: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let data_json = serde_json::to_string(data_simulada)?;
+    let script = format!(
+        r#"
+(() => {{
+    const NativeDate = globalThis.__testesCaixaPretaNativeDate || Date;
+    globalThis.__testesCaixaPretaNativeDate = NativeDate;
+
+    const dataFixa = new NativeDate({data});
+    const tempoFixo = dataFixa.getTime();
+    if (Number.isNaN(tempoFixo)) {{
+        throw new Error("data inválida");
+    }}
+
+    class MockDate extends NativeDate {{
+        constructor(...args) {{
+            super(...(args.length === 0 ? [tempoFixo] : args));
+        }}
+
+        static now() {{
+            return tempoFixo;
+        }}
+    }}
+
+    Object.setPrototypeOf(MockDate, NativeDate);
+    Object.defineProperty(MockDate, 'parse', {{ value: NativeDate.parse }});
+    Object.defineProperty(MockDate, 'UTC', {{ value: NativeDate.UTC }});
+    Object.defineProperty(globalThis, 'Date', {{
+        configurable: true,
+        writable: true,
+        value: MockDate
+    }});
+}})();
+"#,
+        data = data_json
+    );
+
+    tab.call_method(AddScriptToEvaluateOnNewDocument {
+        source: script.clone(),
+        world_name: None,
+        include_command_line_api: None,
+        run_immediately: Some(true),
+    })?;
+    tab.evaluate(&script, false)?;
+    Ok(())
 }

@@ -66,6 +66,9 @@ pub struct CenarioNavegador {
 
 #[derive(Deserialize, Debug, Clone, Default)]
 pub struct PassoNavegacao {
+    #[serde(default, rename = "simular data")]
+    pub simular_data: Option<String>,
+
     #[serde(default, rename = "navegar para")]
     pub navegar_para: Option<String>,
 

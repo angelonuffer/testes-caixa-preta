@@ -35,6 +35,7 @@ Os testes devem ser criados em arquivos `.yaml` dentro do diretório `./testes/`
 
 - cenário: "Teste de captura de tela"
   navegação:
+    - simular data: 2024-05-06T07:08:09.000Z
     - navegar para: https://example.com
     - capturar tela: example.png
 ```
@@ -44,6 +45,7 @@ Os testes devem ser criados em arquivos `.yaml` dentro do diretório `./testes/`
 - `entrada` (opcional): O conteúdo a ser enviado para a entrada padrão (stdin) do primeiro comando.
 - `modo` (opcional): Define o esquema de cores do navegador para cenários de navegação. Aceita `"claro"` ou `"escuro"`, sendo `"claro"` o padrão.
 - `navegação`: Lista de passos para testes no navegador. Atualmente, os passos podem conter:
+  - `simular data`: Define a data usada por `new Date()` e `Date.now()` a partir desse passo.
   - `navegar para`: A URL da página para acessar.
   - `capturar tela`: O nome do arquivo PNG a ser salvo em `testes/telas/`.
 
