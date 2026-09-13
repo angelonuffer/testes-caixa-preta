@@ -27,15 +27,7 @@ pub fn executar_cenario(
             );
         }
         Cenario::Navegador(cenario_navegador) => {
-            testar_navegador(
-                cenario_navegador,
-                idx,
-                expected_results,
-                actual_results,
-                passed,
-                total,
-                config,
-            );
+            testar_navegador(cenario_navegador, passed, total, config);
         }
     }
 }

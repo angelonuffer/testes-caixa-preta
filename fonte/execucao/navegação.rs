@@ -1,6 +1,5 @@
-use crate::modelos::{CenarioNavegador, ModoNavegador, ResultadoCenario, ResultadoNavegador};
+use crate::modelos::{CenarioNavegador, ModoNavegador};
 use headless_chrome::protocol::cdp::Emulation::{MediaFeature, SetEmulatedMedia};
-use std::collections::BTreeMap;
 use std::collections::hash_map::DefaultHasher;
 use std::fs;
 use std::hash::Hasher;
@@ -9,9 +8,6 @@ use std::path::Path;
 
 pub fn testar_navegador(
     cenario_navegador: &CenarioNavegador,
-    idx: usize,
-    expected_results: &Option<Vec<ResultadoCenario>>,
-    actual_results: &mut Vec<ResultadoCenario>,
     passed: &mut usize,
     total: &mut usize,
     config: &Option<crate::modelos::Configuracao>,
@@ -37,7 +33,7 @@ pub fn testar_navegador(
         return;
     }
 
-    let mut telas = BTreeMap::new();
+    let mut cenario_falhou = false;
 
     let mut args = vec![
         std::ffi::OsStr::new("--no-sandbox"),
@@ -318,66 +314,28 @@ pub fn testar_navegador(
             hasher.write(&png_data);
             let hash_str = format!("{:x}", hasher.finish());
 
-            telas.insert(tela.clone(), hash_str);
+            match &passo.hash_esperado {
+                Some(hash_esperado) if hash_esperado == &hash_str => {}
+                Some(hash_esperado) => {
+                    println!("\x1b[1;31m❌ FALHOU\x1b[0m");
+                    println!("    tela: {}", tela);
+                    println!("      hash esperado: {}", hash_esperado);
+                    println!("      hash obtido:   {}", hash_str);
+                    cenario_falhou = true;
+                }
+                None => {
+                    println!(
+                        "\x1b[1;31m❌ FALHOU\x1b[0m (a captura '{}' não especifica 'hash esperado')",
+                        tela
+                    );
+                    cenario_falhou = true;
+                }
+            }
         }
     }
 
-    let res = ResultadoNavegador { telas };
-
-    actual_results.push(ResultadoCenario::Navegador(res.clone()));
-
-    if let Some(esperados) = expected_results {
-        if idx < esperados.len() {
-            if let ResultadoCenario::Navegador(ref esperado) = esperados[idx] {
-                if esperado.telas != res.telas {
-                    println!("\x1b[1;31m❌ FALHOU\x1b[0m");
-                    let mut diff_keys = std::collections::BTreeSet::new();
-
-                    for (tela, hash_esperado) in &esperado.telas {
-                        if res.telas.get(tela) != Some(hash_esperado) {
-                            diff_keys.insert(tela.clone());
-                        }
-                    }
-                    for (tela, hash_obtido) in &res.telas {
-                        if esperado.telas.get(tela) != Some(hash_obtido) {
-                            diff_keys.insert(tela.clone());
-                        }
-                    }
-
-                    for tela in diff_keys {
-                        println!("    tela: {}", tela);
-                        let id_esperado = esperado
-                            .telas
-                            .get(&tela)
-                            .cloned()
-                            .unwrap_or_else(|| "Nenhum".to_string());
-                        let id_obtido = res
-                            .telas
-                            .get(&tela)
-                            .cloned()
-                            .unwrap_or_else(|| "Nenhum".to_string());
-                        println!("      id esperado: {}", id_esperado);
-                        println!("      id obtido:   {}", id_obtido);
-                    }
-                } else {
-                    println!("\x1b[1;32m✅ PASSOU\x1b[0m");
-                    *passed += 1;
-                }
-            } else {
-                println!(
-                    "\x1b[1;31m❌ FALHOU\x1b[0m (tipo incompatível no snapshot, esperado Navegador)"
-                );
-            }
-        } else {
-            println!(
-                "\x1b[1;31m❌ FALHOU\x1b[0m (não há saída correspondente no arquivo de snapshot)"
-            );
-        }
-    } else {
-        println!("\x1b[1;33m📝 GERADO\x1b[0m");
-        for (tela, hash) in &res.telas {
-            println!("    {}: {}", tela, hash);
-        }
+    if !cenario_falhou {
+        println!("\x1b[1;32m✅ PASSOU\x1b[0m");
         *passed += 1;
     }
 }

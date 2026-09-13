@@ -337,29 +337,13 @@ fn main() {
             .to_string();
         saidas_arquivo.set_file_name(format!("{}-saídas.yaml", stem));
 
-        let has_saidas = saidas_arquivo.exists();
+        let tem_navegacao = casos
+            .iter()
+            .any(|caso| matches!(caso, Cenario::Navegador(_)));
+        let has_saidas = !tem_navegacao && saidas_arquivo.exists();
         let mut expected_results: Option<Vec<ResultadoCenario>> = None;
 
-        let mut expected_embedded = Vec::new();
-        for caso in &casos {
-            if let Cenario::Navegador(cn) = caso {
-                let mut telas = std::collections::BTreeMap::new();
-                for passo in &cn.navegação {
-                    if let (Some(tela), Some(hash)) = (&passo.capturar_tela, &passo.hash_esperado) {
-                        telas.insert(tela.clone(), hash.clone());
-                    }
-                }
-                if !telas.is_empty() {
-                    expected_embedded.push(ResultadoCenario::Navegador(
-                        modelos::ResultadoNavegador { telas },
-                    ));
-                }
-            }
-        }
-
-        if !expected_embedded.is_empty() {
-            expected_results = Some(expected_embedded);
-        } else if has_saidas {
+        if has_saidas {
             let saidas_content = match fs::read_to_string(&saidas_arquivo) {
                 Ok(c) => c,
                 Err(err) => {
@@ -400,7 +384,7 @@ fn main() {
             );
         }
 
-        if !is_md && !is_nix && !has_saidas {
+        if !is_md && !is_nix && !tem_navegacao && !has_saidas {
             let serialized = serde_yaml::to_string(&actual_results).unwrap();
             if let Err(err) = fs::write(&saidas_arquivo, serialized) {
                 eprintln!(
