@@ -7,12 +7,3 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     ln -s /usr/bin/chromium /usr/bin/chromium-browser; \
     fi \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Instalar Nix em modo single-user para o usuário vscode com suporte a Flakes
-RUN mkdir -p /nix && chown -R vscode:vscode /nix \
-    && su vscode -c "curl -L https://nixos.org/nix/install | sh -s -- --no-daemon" \
-    && mkdir -p /home/vscode/.config/nix \
-    && echo "experimental-features = nix-command flakes" > /home/vscode/.config/nix/nix.conf \
-    && chown -R vscode:vscode /home/vscode/.config
-
-ENV PATH="/home/vscode/.nix-profile/bin:${PATH}"

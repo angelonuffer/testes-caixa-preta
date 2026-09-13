@@ -226,8 +226,7 @@ fn main() {
         .filter(|p| {
             p.is_file()
                 && (p.extension().and_then(|s| s.to_str()) == Some("yaml")
-                    || p.extension().and_then(|s| s.to_str()) == Some("md")
-                    || p.extension().and_then(|s| s.to_str()) == Some("nix"))
+                    || p.extension().and_then(|s| s.to_str()) == Some("md"))
                 && !p
                     .file_name()
                     .unwrap()
@@ -242,43 +241,26 @@ fn main() {
     for path in files {
         let ext = path.extension().and_then(|s| s.to_str()).unwrap_or("");
         let is_md = ext == "md";
-        let is_nix = ext == "nix";
 
-        let casos: Vec<Cenario> = if is_nix {
-            let output = match std::process::Command::new("nix")
-                .arg("eval")
-                .arg("--json")
-                .arg("-f")
-                .arg(&path)
-                .output()
-            {
-                Ok(o) => o,
-                Err(err) => {
-                    eprintln!(
-                        "\x1b[1;31m❌ Erro ao executar nix eval para {}: {}\x1b[0m",
-                        path.display(),
-                        err
-                    );
-                    parse_errors += 1;
-                    continue;
-                }
-            };
-
-            if !output.status.success() {
+        let content = match fs::read_to_string(&path) {
+            Ok(c) => c,
+            Err(err) => {
                 eprintln!(
-                    "\x1b[1;31m❌ Falha ao avaliar {}: {}\x1b[0m",
+                    "\x1b[1;31m❌ Falha ao ler o arquivo {}: {}\x1b[0m",
                     path.display(),
-                    String::from_utf8_lossy(&output.stderr)
+                    err
                 );
                 parse_errors += 1;
                 continue;
             }
+        };
 
-            match serde_json::from_slice(&output.stdout) {
+        let casos: Vec<Cenario> = if is_md {
+            match markdown::parse_markdown(&content) {
                 Ok(c) => c,
                 Err(err) => {
                     eprintln!(
-                        "\x1b[1;31m❌ Erro ao fazer parse do JSON do Nix para {}: {}\x1b[0m",
+                        "\x1b[1;31m❌ Erro ao fazer parse do arquivo {}: {}\x1b[0m",
                         path.display(),
                         err
                     );
@@ -287,44 +269,16 @@ fn main() {
                 }
             }
         } else {
-            let content = match fs::read_to_string(&path) {
+            match serde_yaml::from_str(&content) {
                 Ok(c) => c,
                 Err(err) => {
                     eprintln!(
-                        "\x1b[1;31m❌ Falha ao ler o arquivo {}: {}\x1b[0m",
+                        "\x1b[1;31m❌ Erro ao fazer parse do arquivo {}: {}\x1b[0m",
                         path.display(),
                         err
                     );
                     parse_errors += 1;
                     continue;
-                }
-            };
-
-            if is_md {
-                match markdown::parse_markdown(&content) {
-                    Ok(c) => c,
-                    Err(err) => {
-                        eprintln!(
-                            "\x1b[1;31m❌ Erro ao fazer parse do arquivo {}: {}\x1b[0m",
-                            path.display(),
-                            err
-                        );
-                        parse_errors += 1;
-                        continue;
-                    }
-                }
-            } else {
-                match serde_yaml::from_str(&content) {
-                    Ok(c) => c,
-                    Err(err) => {
-                        eprintln!(
-                            "\x1b[1;31m❌ Erro ao fazer parse do arquivo {}: {}\x1b[0m",
-                            path.display(),
-                            err
-                        );
-                        parse_errors += 1;
-                        continue;
-                    }
                 }
             }
         };
@@ -384,7 +338,7 @@ fn main() {
             );
         }
 
-        if !is_md && !is_nix && !tem_navegacao && !has_saidas {
+        if !is_md && !tem_navegacao && !has_saidas {
             let serialized = serde_yaml::to_string(&actual_results).unwrap();
             if let Err(err) = fs::write(&saidas_arquivo, serialized) {
                 eprintln!(
