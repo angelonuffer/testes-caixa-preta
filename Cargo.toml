@@ -9,7 +9,6 @@ serde_json = "1.0"
 serde_yaml = "0.9"
 headless_chrome = { version = "1.0", features = ["fetch"] }
 sha2 = "0.10"
-miniserve = "0.35.0"
 
 [[bin]]
 name = "testes-caixa-preta"

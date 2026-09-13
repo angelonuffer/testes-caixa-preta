@@ -9,7 +9,7 @@ O programa lê a configuração opcional em `./testes-caixa-preta.yaml` e, em se
 A configuração da raiz pode definir o servidor a ser iniciado, a URL base e o tempo máximo de espera:
 
 ```yaml
-servidor: "miniserve -p 0 exemplos/"
+servidor: "npx -y serve exemplos/"
 url_base: "http://localhost:$PORTA"
 tempo_espera: 30
 ```
