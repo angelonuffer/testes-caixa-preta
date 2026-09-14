@@ -3,3 +3,4 @@ alvo/
 testes/chrome-profile/
 testes/servidor.log
 .cargo/
+node_modules/

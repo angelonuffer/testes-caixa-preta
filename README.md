@@ -1,6 +1,6 @@
 # Testes Caixa Preta
 
-Uma ferramenta de linha de comando simples em Rust para execução de testes de caixa-preta (black-box) baseados em arquivos YAML.
+Uma ferramenta de linha de comando simples em Node.js para execução de testes de caixa-preta (black-box) baseados em arquivos YAML.
 
 ## Como funciona
 
@@ -60,14 +60,15 @@ Os testes devem ser criados em arquivos `.yaml` dentro do diretório `./testes/`
 
 Para desenvolver ou executar este projeto:
 - **Dev Container** (recomendado): basta abrir o repositório no VS Code / editor compatível com Dev Containers (requer Docker).
-- **Localmente**: [Rust e Cargo](https://rustup.rs/) (edição 2024 / Rust 1.88+), Chromium (ou `chromium-browser`) e Node.js/npm.
+- **Localmente**: Node.js 18+, Chromium (ou `chromium-browser`) e npm.
 
 ## Como Executar
 
-Com o ambiente pronto (no Dev Container ou localmente), você pode rodar os testes executando:
+Com o ambiente pronto (no Dev Container ou localmente), instale as dependências e execute os testes:
 
 ```bash
-cargo run
+npm install
+npm test
 ```
 
 O programa exibirá no terminal o progresso de cada arquivo de teste sendo executado e, no fim, um relatório de quantos testes passaram.

@@ -2,11 +2,11 @@
 
 ## Configuração de Ambiente
 - Toda a configuração de ambiente, dependências e ferramentas é gerenciada pelo Dev Container.
-- Execute os comandos de desenvolvimento e teste diretamente no terminal (como `cargo fmt`, `cargo clippy`, `cargo run`).
+- Execute os comandos de desenvolvimento e teste diretamente no terminal, como `npm install` e `npm test`.
 
-## Desenvolvimento em Rust
-- Ao modificar o código em Rust, sempre verifique se o código está devidamente formatado rodando `cargo fmt` e sem avisos de linting rodando `cargo clippy`.
-- Garanta que a compilação passe e que os testes de caixa-preta continuem funcionando executando `cargo run`.
+## Desenvolvimento em Node.js
+- Ao modificar o runner, valide a sintaxe e execute a suíte completa com `npm test`.
+- Mantenha o uso do Chromium instalado no ambiente para os cenários de navegação.
 
 ## Testes Caixa-Preta
 - Para adicionar novos testes de caixa-preta, crie ou edite arquivos `.yaml` dentro do diretório `./testes/`.
